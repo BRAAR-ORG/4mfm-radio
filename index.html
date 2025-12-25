@@ -166,8 +166,8 @@ function nextBackground(){
 
 /* LOAD AUDIO DATA */
 async function loadData(){
-  const s = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tag/songs").then(r=>r.json());
-  const a = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tag/announcer").then(r=>r.json());
+  const s = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/songs").then(r=>r.json());
+  const a = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/announcer").then(r=>r.json());
   playlist = s.assets.filter(x=>x.name.endsWith(".mp3"));
   announcers = a.assets.filter(x=>x.name.endsWith(".mp3"));
 }
@@ -207,6 +207,7 @@ allowBtn.onclick = async ()=>{
 
 </body>
 </html>
+
 
 
 
