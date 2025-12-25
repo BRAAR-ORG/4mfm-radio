@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4MFM Radio</title>
+<link rel="icon" href="logo-4mfm.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --cyan:#00ffff;
+  --bg:rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#000;color:#fff;overflow:hidden}
+
+/* LOGO */
+#radioLogo{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  z-index:10;animation:logoFloat 6s ease-in-out infinite
+}
+#radioLogo img{width:150px;filter:drop-shadow(0 0 15px var(--cyan))}
+
+/* BACKGROUND */
+.bg-video-container{
+  position:fixed;inset:0;z-index:-1;display:flex;justify-content:center;align-items:center;overflow:hidden;
+}
+.bg-video-container video,
+.bg-video-container img{
+  position:absolute;
+  width:120%;
+  height:120%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity 1.5s ease;
+  filter:contrast(1.2) saturate(1.2) sepia(0.2) blur(3px);
+}
+video.active, img.active{opacity:1}
+
+/* PLAYER */
+#radioPlayer{
+  position:fixed;bottom:22px;left:50%;
+  transform:translateX(-50%);
+  background:var(--bg);
+  backdrop-filter:blur(10px);
+  padding:22px 36px;
+  border-radius:18px;
+  border:1px solid rgba(0,255,255,.4);
+  box-shadow:0 0 25px rgba(0,255,255,.35);
+  text-align:center;
+  animation:float 4s ease-in-out infinite;
+}
+#radioPlayer h1{margin:0;font-family:Orbitron;color:var(--cyan);font-size:22px}
+#songName{margin-top:6px;font-weight:700;color:#ff4d4d;animation:pulse 1s infinite}
+.eq{margin-top:12px}
+.eq span{display:inline-block;width:4px;height:10px;background:var(--cyan);margin:0 2px;animation:eq 0.6s infinite alternate}
+
+@keyframes eq{to{height:22px;opacity:1}}
+@keyframes float{50%{transform:translateX(-50%) translateY(-6px)}}
+@keyframes logoFloat{50%{transform:translateX(-50%) translateY(-8px)}}
+@keyframes pulse{50%{transform:scale(1.15)}}
+
+/* MODAL */
+#permissionModal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal-box{background:#111;padding:28px;border-radius:14px;text-align:center;max-width:360px}
+button{margin-top:16px;padding:12px 26px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#00ffff,#006bff);color:#000}
+
+/* NOTIFICATION */
+#notify{position:fixed;top:90px;left:50%;transform:translateX(-50%);background:#000;padding:10px 18px;border-radius:10px;color:var(--cyan);display:none;box-shadow:0 0 12px rgba(0,255,255,.4)}
+</style>
+</head>
+
+<body>
+
+<div id="radioLogo"><img src="logo-4mfm.png"></div>
+<div id="notify"></div>
+
+<div class="bg-video-container">
+  <!-- 6 vídeos -->
+  <video src="midia/video1.mp4" muted playsinline></video>
+  <video src="midia/video2.mp4" muted playsinline></video>
+  <video src="midia/video3.mp4" muted playsinline></video>
+  <video src="midia/video4.mp4" muted playsinline></video>
+  <video src="midia/video5.mp4" muted playsinline></video>
+  <video src="midia/video6.mp4" muted playsinline></video>
+  <!-- 25 imagens -->
+  <img src="midia/img003.png">
+  <img src="midia/img004.png">
+  <img src="midia/img005.png">
+  <img src="midia/img006.png">
+  <img src="midia/img007.png">
+  <img src="midia/img008.png">
+  <img src="midia/img009.png">
+  <img src="midia/img010.png">
+  <img src="midia/img011.png">
+  <img src="midia/img012.png">
+  <img src="midia/img013.png">
+  <img src="midia/img014.png">
+  <img src="midia/img015.png">
+  <img src="midia/img016.png">
+  <img src="midia/img017.png">
+  <img src="midia/img018.png">
+  <img src="midia/img019.png">
+  <img src="midia/img020.png">
+  <img src="midia/img021.png">
+  <img src="midia/img022.png">
+  <img src="midia/img023.png">
+  <img src="midia/img024.png">
+  <img src="midia/img025.png">
+</div>
+
+<div id="permissionModal">
+  <div class="modal-box">
+    <h2>Ativar Rádio</h2>
+    <p>Toque para iniciar a 4MFM</p>
+    <button id="allowBtn">OUVIR AGORA</button>
+  </div>
+</div>
+
+<div id="radioPlayer">
+  <h1>4MFM · AO VIVO</h1>
+  <div id="songName">Carregando…</div>
+  <div class="eq"><span></span><span></span><span></span><span></span><span></span></div>
+</div>
+
+<audio id="player" playsinline></audio>
+
+<script>
+const player = document.getElementById("player");
+const modal = document.getElementById("permissionModal");
+const allowBtn = document.getElementById("allowBtn");
+const songName = document.getElementById("songName");
+const notify = document.getElementById("notify");
+const bgElements = document.querySelectorAll(".bg-video-container video, .bg-video-container img");
+
+player.volume = 1;
+let playlist = [], announcers = [], count = 0, current = 0;
+
+/* NOTIFY */
+function notifyMsg(msg){
+  notify.textContent = msg;
+  notify.style.display="block";
+  setTimeout(()=>notify.style.display="none",3000);
+  if("Notification" in window){
+    if(Notification.permission==="granted") new Notification("4MFM Radio",{body:msg,icon:"logo-4mfm.png"});
+    else if(Notification.permission!=="denied") Notification.requestPermission().then(p=>{if(p==="granted") new Notification("4MFM Radio",{body:msg,icon:"logo-4mfm.png"})});
+  }
+}
+
+/* SWITCH BACKGROUND */
+function nextBackground(){
+  // Remove ativo do elemento atual
+  bgElements[current].classList.remove("active");
+  current++;
+  if(current>=bgElements.length) current=0; // volta ao início
+
+  let el = bgElements[current];
+  el.classList.add("active");
+
+  if(el.tagName==="VIDEO"){
+    el.play();
+    el.onended = nextBackground; // próximo quando terminar
+  } else {
+    setTimeout(nextBackground, 8000); // imagem aparece 8s
+  }
+}
+
+/* LOAD AUDIO DATA */
+async function loadData(){
+  const s = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/songs").then(r=>r.json());
+  const a = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/announcer").then(r=>r.json());
+  playlist = s.assets.filter(x=>x.name.endsWith(".mp3"));
+  announcers = a.assets.filter(x=>x.name.endsWith(".mp3"));
+}
+
+/* PLAY SONGS */
+async function nextSong(){
+  count++;
+  let src,title;
+  if((count%6===0||count%12===0)&&announcers.length){
+    const a = announcers[Math.floor(Math.random()*announcers.length)];
+    src = a.browser_download_url;
+    title = "Kiara no Ar";
+  } else {
+    const m = playlist[Math.floor(Math.random()*playlist.length)];
+    src = m.browser_download_url;
+    title = m.name.replace(".mp3","").replace(/[.-]/g," ");
+  }
+  player.src = src;
+  songName.textContent = title;
+  await player.play();
+  notifyMsg("Tocando: "+title);
+}
+player.onended = nextSong;
+
+/* START ON IOS */
+allowBtn.onclick = async ()=>{
+  modal.style.display = "none";
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  if(ctx.state==="suspended") await ctx.resume();
+  player.src=""; player.play().catch(()=>{});
+  notifyMsg("Conectando à 4MFM…");
+  await loadData();
+  await nextSong();
+  nextBackground();
+};
+</script>
+
+</body>
+</html>
