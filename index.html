@@ -1,241 +1,47 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>4MFM • Rádio Virtual 24h</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4MFM Radio</title>
 
-  <!-- iOS autoplay compatibility -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #0a0a0a;
-      color: #fff;
-      overflow: hidden;
-    }
-
-    #app {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* LOGO */
-    #logo {
-      width: 220px;
-      max-width: 80vw;
-      margin-bottom: 12px;
-      filter: drop-shadow(0 0 15px rgba(255,255,255,.25));
-    }
-
-    /* STATUS */
-    #status {
-      font-size: 14px;
-      letter-spacing: 1px;
-      opacity: .8;
-      margin-bottom: 10px;
-    }
-
-    /* KIARA NO AR */
-    #announcer {
-      display: none;
-      margin-bottom: 10px;
-      font-weight: bold;
-      color: #ff4f4f;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { opacity: .4; }
-      50% { opacity: 1; }
-      100% { opacity: .4; }
-    }
-
-    /* MEDIA */
-    #media {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    video, img {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: blur(1.5px) contrast(1.1) saturate(1.2);
-    }
-
-    video { background: black; }
-
-    /* POPUP */
-    #popup {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.92);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-
-    #popup button {
-      padding: 18px 32px;
-      font-size: 18px;
-      border: none;
-      background: #e60000;
-      color: #fff;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-
-    #resumeNotice {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.7);
-      padding: 8px 16px;
-      font-size: 12px;
-      display: none;
-      z-index: 998;
-    }
-  </style>
+<link rel="icon" href="logo-4mfm.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div id="popup">
-  <button id="allow">Permitir reprodução</button>
+<div id="radioLogo">
+  <img src="logo-4mfm.png" alt="4MFM">
 </div>
 
-<div id="resumeNotice">Retomando reprodução…</div>
+<div id="notify"></div>
 
-<div id="app">
-  <img id="logo" src="logo.png" alt="4MFM" />
-  <div id="status">AO VIVO • 4MFM</div>
-  <div id="announcer">🎙️ KIARA NO AR</div>
+<div class="bg-container" id="bgContainer">
+  <video src="video1.mp4" muted playsinline></video>
+  <video src="video2.mp4" muted playsinline></video>
+
+  <!-- EXEMPLO – coloque as 25 imagens aqui -->
+  <img src="img001.png">
+  <img src="img002.png">
 </div>
 
-<div id="media"></div>
+<div id="permissionModal">
+  <div class="modal-box">
+    <h2>Ativar Rádio</h2>
+    <button id="allowBtn">OUVIR AGORA</button>
+  </div>
+</div>
+
+<div id="radioPlayer">
+  <h1 id="liveTitle">4MFM · AO VIVO</h1>
+  <div id="songName">Carregando…</div>
+</div>
 
 <audio id="player" playsinline></audio>
+<audio id="preloadPlayer" playsinline preload="auto"></audio>
 
-<script>
-/* CONFIG */
-const MUSIC_API = 'https://github.com/BRAAR-ORG/4mfm-api/releases/tag/songs';
-const ANNOUNCER_API = 'https://github.com/BRAAR-ORG/4mfm-api/releases/tag/announcer';
-
-const images = Array.from({ length: 25 }, (_, i) => `media/img${i+1}.jpg`);
-const videos = ['media/video1.mp4', 'media/video2.mp4'];
-
-let musicIndex = 0;
-let playCount = 0;
-let mediaIndex = 0;
-let isVideo = true;
-
-const audio = document.getElementById('player');
-const media = document.getElementById('media');
-const announcer = document.getElementById('announcer');
-const popup = document.getElementById('popup');
-const resumeNotice = document.getElementById('resumeNotice');
-
-/* RESTORE STATE */
-let savedState = JSON.parse(localStorage.getItem('radioState') || '{}');
-
-/* LOAD MUSIC */
-function loadMusic(src, time = 0) {
-  audio.src = src;
-  audio.load();
-  audio.currentTime = time;
-  audio.volume = 1;
-  audio.play().catch(()=>{});
-}
-
-/* ANNOUNCER */
-function playAnnouncer() {
-  announcer.style.display = 'block';
-  audio.src = ANNOUNCER_API;
-  audio.play();
-  audio.onended = () => {
-    announcer.style.display = 'none';
-    playMusic();
-  };
-}
-
-/* MUSIC FLOW */
-function playMusic() {
-  playCount++;
-
-  if (playCount % 6 === 0 || playCount % 12 === 0) {
-    playAnnouncer();
-    return;
-  }
-
-  const src = MUSIC_API;
-  loadMusic(src, savedState.time || 0);
-}
-
-/* MEDIA ROTATION */
-function showMedia() {
-  media.innerHTML = '';
-
-  if (isVideo) {
-    const v = document.createElement('video');
-    v.src = videos[mediaIndex % videos.length];
-    v.autoplay = true;
-    v.muted = true;
-    v.playsInline = true;
-    v.onended = () => {
-      isVideo = false;
-      mediaIndex = 0;
-      showMedia();
-    };
-    media.appendChild(v);
-  } else {
-    const img = document.createElement('img');
-    img.src = images[mediaIndex];
-    media.appendChild(img);
-
-    setTimeout(() => {
-      mediaIndex++;
-      if (mediaIndex >= images.length) {
-        isVideo = true;
-        mediaIndex = 0;
-      }
-      showMedia();
-    }, 6000);
-  }
-}
-
-/* SAVE POSITION */
-setInterval(() => {
-  if (!audio.paused) {
-    localStorage.setItem('radioState', JSON.stringify({
-      time: audio.currentTime
-    }));
-  }
-}, 5000);
-
-/* AUTOPLAY PERMISSION */
-document.getElementById('allow').onclick = () => {
-  popup.style.display = 'none';
-  resumeNotice.style.display = 'block';
-  setTimeout(()=>resumeNotice.style.display='none',2000);
-  playMusic();
-  showMedia();
-};
-</script>
-
+<script src="4mfm.js"></script>
 </body>
 </html>
