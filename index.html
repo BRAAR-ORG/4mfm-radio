@@ -1,174 +1,239 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4MFM Radio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>4MFM • Rádio Virtual 24h</title>
 
-<link rel="icon" href="logo-4mfm.png">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+  <!-- iOS autoplay compatibility -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
 
-<style>
-:root{--cyan:#00ffff;--bg:rgba(0,0,0,.55)}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial;background:#000;color:#fff;overflow:hidden}
+  <style>
+    * { box-sizing: border-box; }
 
-/* LOGO */
-#radioLogo{position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:10}
-#radioLogo img{width:150px;filter:drop-shadow(0 0 15px var(--cyan))}
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      overflow: hidden;
+    }
 
-/* BACKGROUND */
-.bg-container{position:fixed;inset:0;z-index:-1}
-.bg-container video,.bg-container img{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;opacity:0;transition:opacity 1.5s ease;
-  filter:contrast(1.15) saturate(1.25) sepia(.25) blur(3px)
-}
-.bg-container .active{opacity:1}
+    #app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* PLAYER */
-#radioPlayer{
-  position:fixed;bottom:22px;left:50%;
-  transform:translateX(-50%);
-  background:var(--bg);backdrop-filter:blur(10px);
-  padding:22px 36px;border-radius:18px;
-  border:1px solid rgba(0,255,255,.4);
-  box-shadow:0 0 25px rgba(0,255,255,.35);
-  text-align:center
-}
-#radioPlayer h1{margin:0;font-family:Orbitron;color:var(--cyan)}
-#songName{margin-top:6px;font-weight:700;color:#ff4d4d}
+    /* LOGO */
+    #logo {
+      width: 220px;
+      max-width: 80vw;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 15px rgba(255,255,255,.25));
+    }
 
-/* MODAL */
-#permissionModal{position:fixed;inset:0;background:rgba(0,0,0,.85);
-display:flex;align-items:center;justify-content:center;z-index:999}
-.modal-box{background:#111;padding:28px;border-radius:14px;text-align:center}
-button{margin-top:16px;padding:12px 26px;border:none;border-radius:8px;
-font-weight:bold;cursor:pointer;background:linear-gradient(90deg,#00ffff,#006bff)}
+    /* STATUS */
+    #status {
+      font-size: 14px;
+      letter-spacing: 1px;
+      opacity: .8;
+      margin-bottom: 10px;
+    }
 
-#notify{
-  position:fixed;top:90px;left:50%;transform:translateX(-50%);
-  background:#000;padding:10px 18px;border-radius:10px;
-  color:var(--cyan);display:none
-}
-</style>
+    /* KIARA NO AR */
+    #announcer {
+      display: none;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: #ff4f4f;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: .4; }
+      50% { opacity: 1; }
+      100% { opacity: .4; }
+    }
+
+    /* MEDIA */
+    #media {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    video, img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(1.5px) contrast(1.1) saturate(1.2);
+    }
+
+    video { background: black; }
+
+    /* POPUP */
+    #popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    #popup button {
+      padding: 18px 32px;
+      font-size: 18px;
+      border: none;
+      background: #e60000;
+      color: #fff;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    #resumeNotice {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.7);
+      padding: 8px 16px;
+      font-size: 12px;
+      display: none;
+      z-index: 998;
+    }
+  </style>
 </head>
-
 <body>
 
-<div id="radioLogo"><img src="logo-4mfm.png"></div>
-<div id="notify"></div>
-
-<div class="bg-container">
-  <video src="video1.mp4" muted playsinline></video>
-  <video src="video2.mp4" muted playsinline></video>
-  <img src="img001.png">
-  <img src="img002.png">
-  <img src="img003.png">
-  <img src="img004.png">
-  <img src="img005.png">
-  <img src="img006.png">
-  <img src="img007.png">
-  <img src="img008.png">
-  <img src="img009.png">
-  <img src="img0010.png">
+<div id="popup">
+  <button id="allow">Permitir reprodução</button>
 </div>
 
-<div id="permissionModal">
-  <div class="modal-box">
-    <h2>Ativar Rádio</h2>
-    <button id="allowBtn">OUVIR AGORA</button>
-  </div>
+<div id="resumeNotice">Retomando reprodução…</div>
+
+<div id="app">
+  <img id="logo" src="logo.png" alt="4MFM" />
+  <div id="status">AO VIVO • 4MFM</div>
+  <div id="announcer">🎙️ KIARA NO AR</div>
 </div>
 
-<div id="radioPlayer">
-  <h1>4MFM · AO VIVO</h1>
-  <div id="songName">Carregando…</div>
-</div>
+<div id="media"></div>
 
 <audio id="player" playsinline></audio>
-<audio id="preloadPlayer" playsinline preload="auto"></audio>
 
 <script>
-const player = document.getElementById("player");
-const preloadPlayer = document.getElementById("preloadPlayer");
-const allowBtn = document.getElementById("allowBtn");
-const modal = document.getElementById("permissionModal");
-const songName = document.getElementById("songName");
-const notify = document.getElementById("notify");
+/* CONFIG */
+const MUSIC_API = 'https://github.com/BRAAR-ORG/4mfm-api/releases/tag/songs';
+const ANNOUNCER_API = 'https://github.com/BRAAR-ORG/4mfm-api/releases/tag/announcer';
 
-let playlist=[], announcers=[], count=0;
+const images = Array.from({ length: 25 }, (_, i) => `media/img${i+1}.jpg`);
+const videos = ['media/video1.mp4', 'media/video2.mp4'];
 
-/* NOTIFY */
-function notifyMsg(t){
-  notify.textContent=t; notify.style.display="block";
-  setTimeout(()=>notify.style.display="none",3000);
+let musicIndex = 0;
+let playCount = 0;
+let mediaIndex = 0;
+let isVideo = true;
+
+const audio = document.getElementById('player');
+const media = document.getElementById('media');
+const announcer = document.getElementById('announcer');
+const popup = document.getElementById('popup');
+const resumeNotice = document.getElementById('resumeNotice');
+
+/* RESTORE STATE */
+let savedState = JSON.parse(localStorage.getItem('radioState') || '{}');
+
+/* LOAD MUSIC */
+function loadMusic(src, time = 0) {
+  audio.src = src;
+  audio.load();
+  audio.currentTime = time;
+  audio.volume = 1;
+  audio.play().catch(()=>{});
+}
+
+/* ANNOUNCER */
+function playAnnouncer() {
+  announcer.style.display = 'block';
+  audio.src = ANNOUNCER_API;
+  audio.play();
+  audio.onended = () => {
+    announcer.style.display = 'none';
+    playMusic();
+  };
+}
+
+/* MUSIC FLOW */
+function playMusic() {
+  playCount++;
+
+  if (playCount % 6 === 0 || playCount % 12 === 0) {
+    playAnnouncer();
+    return;
+  }
+
+  const src = MUSIC_API;
+  loadMusic(src, savedState.time || 0);
+}
+
+/* MEDIA ROTATION */
+function showMedia() {
+  media.innerHTML = '';
+
+  if (isVideo) {
+    const v = document.createElement('video');
+    v.src = videos[mediaIndex % videos.length];
+    v.autoplay = true;
+    v.muted = true;
+    v.playsInline = true;
+    v.onended = () => {
+      isVideo = false;
+      mediaIndex = 0;
+      showMedia();
+    };
+    media.appendChild(v);
+  } else {
+    const img = document.createElement('img');
+    img.src = images[mediaIndex];
+    media.appendChild(img);
+
+    setTimeout(() => {
+      mediaIndex++;
+      if (mediaIndex >= images.length) {
+        isVideo = true;
+        mediaIndex = 0;
+      }
+      showMedia();
+    }, 6000);
+  }
 }
 
 /* SAVE POSITION */
-player.addEventListener("timeupdate", ()=>{
-  localStorage.setItem("lastSrc", player.src);
-  localStorage.setItem("lastTime", player.currentTime);
-});
-
-/* LOAD DATA */
-async function loadData(){
-  const s = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/songs").then(r=>r.json());
-  const a = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer").then(r=>r.json());
-  playlist = s.assets.filter(x=>x.name.endsWith(".mp3"));
-  announcers = a.assets.filter(x=>x.name.endsWith(".mp3"));
-}
-
-/* PICK NEXT */
-function pickNext(){
-  count++;
-  if((count%6===0||count%12===0)&&announcers.length){
-    const a=announcers[Math.random()*announcers.length|0];
-    return {src:a.browser_download_url,title:"Kiara no Ar"};
+setInterval(() => {
+  if (!audio.paused) {
+    localStorage.setItem('radioState', JSON.stringify({
+      time: audio.currentTime
+    }));
   }
-  const m=playlist[Math.random()*playlist.length|0];
-  return {src:m.browser_download_url,title:m.name.replace(".mp3","").replace(/[.-]/g," ")};
-}
+}, 5000);
 
-/* PLAY */
-async function playSong(data, resume=false){
-  player.src=data.src;
-  songName.textContent=data.title;
-
-  if(resume){
-    notifyMsg("Retomando reprodução…");
-    const t=parseFloat(localStorage.getItem("lastTime")||0);
-    player.currentTime=t;
-  }
-
-  await player.play();
-
-  const next = pickNext();
-  preloadPlayer.src = next.src;
-}
-
-/* END */
-player.onended = ()=>{
-  const next = pickNext();
-  playSong(next);
-};
-
-/* START */
-allowBtn.onclick = async ()=>{
-  modal.style.display="none";
-
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();
-  if(ctx.state==="suspended") await ctx.resume();
-
-  await loadData();
-
-  const savedSrc=localStorage.getItem("lastSrc");
-  if(savedSrc){
-    playSong({src:savedSrc,title:"Retomando…"},true)
-      .catch(()=>playSong(pickNext()));
-  }else{
-    playSong(pickNext());
-  }
+/* AUTOPLAY PERMISSION */
+document.getElementById('allow').onclick = () => {
+  popup.style.display = 'none';
+  resumeNotice.style.display = 'block';
+  setTimeout(()=>resumeNotice.style.display='none',2000);
+  playMusic();
+  showMedia();
 };
 </script>
 
