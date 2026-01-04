@@ -5,132 +5,230 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>4MFM Radio</title>
 
+<link rel="icon" href="logo-4mfm.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-html,body{
+:root{
+  --cyan:#00ffff;
+}
+
+*{box-sizing:border-box}
+
+body{
   margin:0;
-  width:100%;
-  height:100%;
-  background:black;
+  background:#000;
+  color:#fff;
+  font-family:Inter,Arial,sans-serif;
   overflow:hidden;
 }
 
-/* CONTAINER */
-#stage{
+/* ===== FUNDO ===== */
+#bg{
   position:fixed;
   inset:0;
+  z-index:-1;
+  overflow:hidden;
 }
 
-/* VIDEO + IMG */
-#bgVideo,
-#bgImage{
+#bg video,
+#bg img{
   position:absolute;
   inset:0;
   width:100%;
   height:100%;
   object-fit:cover;
   opacity:0;
-  transition:opacity 1.2s ease;
+  transition:opacity 1.5s ease;
+  filter:blur(2px) contrast(1.1) saturate(1.2);
 }
 
-/* ATIVO */
-.active{
+#bg .active{
   opacity:1;
 }
 
-/* FILTRO RETRÔ */
-#retro{
+/* ===== OVERLAY ===== */
+#bg::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.35);
+}
+
+/* ===== LOGO ===== */
+#logo{
+  position:fixed;
+  top:16px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:10;
+}
+#logo img{
+  width:150px;
+  filter:drop-shadow(0 0 15px var(--cyan));
+}
+
+/* ===== PLAYER ===== */
+#playerBox{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(10px);
+  padding:22px 34px;
+  border-radius:18px;
+  border:1px solid rgba(0,255,255,.4);
+  box-shadow:0 0 25px rgba(0,255,255,.35);
+  text-align:center;
+}
+
+#playerBox h1{
+  margin:0;
+  font-family:Orbitron;
+  color:var(--cyan);
+}
+
+#song{
+  margin-top:6px;
+  font-weight:600;
+  color:#ff4d4d;
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  50%{transform:scale(1.1)}
+}
+
+/* ===== MODAL ===== */
+#modal{
   position:fixed;
   inset:0;
-  pointer-events:none;
-  backdrop-filter:blur(4px);
-  background:
-    radial-gradient(circle,rgba(255,220,180,0.08),rgba(0,0,0,0.7)),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255,255,255,0.04),
-      rgba(255,255,255,0.04) 1px,
-      rgba(0,0,0,0.02) 2px,
-      rgba(0,0,0,0.02) 3px
-    );
+  background:rgba(0,0,0,.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:20;
+}
+
+#modal div{
+  background:#111;
+  padding:30px;
+  border-radius:14px;
+  text-align:center;
+}
+
+button{
+  margin-top:16px;
+  padding:12px 26px;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+  background:linear-gradient(90deg,#00ffff,#006bff);
 }
 </style>
 </head>
 
 <body>
 
-<div id="stage">
-  <video id="bgVideo" muted playsinline webkit-playsinline></video>
+<div id="bg">
+  <video id="bgVideo" muted playsinline></video>
   <img id="bgImage">
 </div>
 
-<div id="retro"></div>
+<div id="logo">
+  <img src="logo-4mfm.png">
+</div>
+
+<div id="modal">
+  <div>
+    <h2>Ativar Rádio</h2>
+    <p>Toque para ouvir a 4MFM</p>
+    <button id="start">OUVIR AGORA</button>
+  </div>
+</div>
+
+<div id="playerBox">
+  <h1>4MFM · AO VIVO</h1>
+  <div id="song">Carregando…</div>
+</div>
+
+<audio id="audio" playsinline></audio>
 
 <script>
-/* PLAYLIST REAL */
-const media = [
-  {type:"video",src:"midia/video1.mp4"},
-  {type:"video",src:"midia/video2.mp4"},
+const audio = document.getElementById("audio");
+const songEl = document.getElementById("song");
+const startBtn = document.getElementById("start");
+const modal = document.getElementById("modal");
 
-  {type:"image",src:"midia/img01.jpg"},
-  {type:"image",src:"midia/img02.jpg"},
-  {type:"image",src:"midia/img03.jpg"}
-  // continue até 25
+const bgVideo = document.getElementById("bgVideo");
+const bgImage = document.getElementById("bgImage");
+
+audio.volume = 1;
+
+/* MIDIAS */
+const videos = [
+  "midia/video1.mp4",
+  "midia/video2.mp4"
 ];
 
-let index = 0;
-const video = document.getElementById("bgVideo");
-const image = document.getElementById("bgImage");
+const images = [
+  "midia/img01.jpg","midia/img02.jpg","midia/img03.jpg"
+];
 
-/* RESET VISUAL */
-function hideAll(){
-  video.classList.remove("active");
-  image.classList.remove("active");
-}
+let mediaIndex = 0;
+let useVideo = true;
 
-/* AVANÇAR */
-function next(){
-  index = (index + 1) % media.length;
-  playCurrent();
-}
+/* FUNDO */
+function nextBackground(){
+  bgVideo.classList.remove("active");
+  bgImage.classList.remove("active");
 
-/* PLAYER CENTRAL */
-function playCurrent(){
-  hideAll();
-  const item = media[index];
-
-  if(item.type === "video"){
-    image.src = "";
-
-    video.src = item.src;
-    video.currentTime = 0;
-    video.classList.add("active");
-    video.play().catch(()=>{});
-
-  } else {
-    video.pause();
-    video.src = "";
-
-    image.src = item.src;
-    image.classList.add("active");
-
-    setTimeout(next, 8000);
+  if(useVideo){
+    bgVideo.src = videos[mediaIndex % videos.length];
+    bgVideo.play();
+    bgVideo.classList.add("active");
+  }else{
+    bgImage.src = images[mediaIndex % images.length];
+    bgImage.classList.add("active");
   }
+
+  useVideo = !useVideo;
+  mediaIndex++;
 }
 
-/* EVENTOS */
-video.onended = next;
-video.onerror = next;
-image.onerror = next;
+bgVideo.onended = nextBackground;
 
-/* START SEGURO (iOS) */
-window.addEventListener("click", ()=>{
-  if(video.paused){
-    playCurrent();
-  }
-},{once:true});
+/* AUDIO */
+let playlist=[];
 
-/* GARANTE PRIMEIRA EXIBIÇÃO */
-playCurrent();
+async function loadSongs(){
+  const r = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/songs");
+  const d = await r.json();
+  playlist = d.assets.filter(a=>a.name.endsWith(".mp3"));
+}
+
+async function playNext(){
+  const m = playlist[Math.random()*playlist.length|0];
+  songEl.textContent = m.name.replace(".mp3","").replace(/[.-]/g," ");
+  audio.src = m.browser_download_url;
+  await audio.play();
+}
+
+audio.onended = playNext;
+
+/* START */
+startBtn.onclick = async ()=>{
+  modal.style.display="none";
+
+  const ctx = new (window.AudioContext||window.webkitAudioContext)();
+  if(ctx.state==="suspended") await ctx.resume();
+
+  await loadSongs();
+  await playNext();
+  nextBackground();
+};
 </script>
 
 </body>
