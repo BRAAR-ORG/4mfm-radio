@@ -6,115 +6,131 @@
 <title>4MFM Radio</title>
 
 <style>
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  background: black;
-  overflow: hidden;
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  background:black;
+  overflow:hidden;
 }
 
-#mediaStage {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* CONTAINER */
+#stage{
+  position:fixed;
+  inset:0;
 }
 
-#mediaStage video,
-#mediaStage img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  position: absolute;
+/* VIDEO + IMG */
+#bgVideo,
+#bgImage{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity 1.2s ease;
+}
+
+/* ATIVO */
+.active{
+  opacity:1;
 }
 
 /* FILTRO RETRÔ */
-#retroFilter {
-  position: fixed;
-  inset: 0;
+#retro{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  backdrop-filter:blur(4px);
   background:
-    radial-gradient(circle, rgba(255,200,150,0.05), rgba(0,0,0,0.7)),
+    radial-gradient(circle,rgba(255,220,180,0.08),rgba(0,0,0,0.7)),
     repeating-linear-gradient(
       0deg,
-      rgba(255,255,255,0.03),
-      rgba(255,255,255,0.03) 1px,
+      rgba(255,255,255,0.04),
+      rgba(255,255,255,0.04) 1px,
       rgba(0,0,0,0.02) 2px,
       rgba(0,0,0,0.02) 3px
     );
-  backdrop-filter: blur(3px);
-  pointer-events: none;
 }
 </style>
 </head>
 
 <body>
 
-<div id="mediaStage"></div>
-<div id="retroFilter"></div>
+<div id="stage">
+  <video id="bgVideo" muted playsinline webkit-playsinline></video>
+  <img id="bgImage">
+</div>
+
+<div id="retro"></div>
 
 <script>
-const playlist = [
-  { type: "video", src: "video1.mp4" },
-  { type: "video", src: "video2.mp4" },
+/* PLAYLIST REAL */
+const media = [
+  {type:"video",src:"midia/video1.mp4"},
+  {type:"video",src:"midia/video2.mp4"},
 
-  { type: "image", src: "foto01.jpg" },
-  { type: "image", src: "foto02.jpg" },
-  { type: "image", src: "foto03.jpg" }
+  {type:"image",src:"midia/img01.jpg"},
+  {type:"image",src:"midia/img02.jpg"},
+  {type:"image",src:"midia/img03.jpg"}
+  // continue até 25
 ];
 
 let index = 0;
-const stage = document.getElementById("mediaStage");
+const video = document.getElementById("bgVideo");
+const image = document.getElementById("bgImage");
 
-function clearStage() {
-  stage.innerHTML = "";
+/* RESET VISUAL */
+function hideAll(){
+  video.classList.remove("active");
+  image.classList.remove("active");
 }
 
-function next() {
-  index = (index + 1) % playlist.length;
-  play();
+/* AVANÇAR */
+function next(){
+  index = (index + 1) % media.length;
+  playCurrent();
 }
 
-function play() {
-  clearStage();
-  const item = playlist[index];
+/* PLAYER CENTRAL */
+function playCurrent(){
+  hideAll();
+  const item = media[index];
 
-  if (item.type === "video") {
-    const v = document.createElement("video");
-    v.src = item.src;
-    v.muted = true;
-    v.autoplay = true;
-    v.playsInline = true;
-    v.setAttribute("webkit-playsinline", "true");
-    v.preload = "auto";
+  if(item.type === "video"){
+    image.src = "";
 
-    v.onended = next;
-    v.onerror = next;
+    video.src = item.src;
+    video.currentTime = 0;
+    video.classList.add("active");
+    video.play().catch(()=>{});
 
-    stage.appendChild(v);
+  } else {
+    video.pause();
+    video.src = "";
 
-    // Fallback se o vídeo não iniciar
-    setTimeout(() => {
-      if (v.readyState === 0) next();
-    }, 2000);
-  }
-
-  if (item.type === "image") {
-    const img = document.createElement("img");
-    img.src = item.src;
-    img.onerror = next;
-
-    stage.appendChild(img);
+    image.src = item.src;
+    image.classList.add("active");
 
     setTimeout(next, 8000);
   }
 }
 
-// GARANTE QUE ALGO APAREÇA
-window.onload = () => {
-  play();
-};
+/* EVENTOS */
+video.onended = next;
+video.onerror = next;
+image.onerror = next;
+
+/* START SEGURO (iOS) */
+window.addEventListener("click", ()=>{
+  if(video.paused){
+    playCurrent();
+  }
+},{once:true});
+
+/* GARANTE PRIMEIRA EXIBIÇÃO */
+playCurrent();
 </script>
 
 </body>
