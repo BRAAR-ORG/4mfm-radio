@@ -2,232 +2,262 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<title>4MFM RADIO • AO VIVO</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>4MFM Radio</title>
-
-<link rel="icon" href="logo-4mfm.png">
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.ico">
 
 <style>
 :root{
-  --cyan:#00ffff;
+  --primary:#e10600;
+  --glass:rgba(0,0,0,.55);
 }
 
-*{box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{background:#000;color:#fff;overflow:hidden}
 
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:Inter,Arial,sans-serif;
-  overflow:hidden;
-}
-
-/* ===== FUNDO ===== */
-#bg{
+#bgVideo,#bgImage{
   position:fixed;
-  inset:0;
-  z-index:-1;
-  overflow:hidden;
-}
-
-#bg video,
-#bg img{
-  position:absolute;
   inset:0;
   width:100%;
   height:100%;
   object-fit:cover;
-  opacity:0;
-  transition:opacity 1.5s ease;
-  filter:blur(2px) contrast(1.1) saturate(1.2);
+  filter:blur(7px) brightness(.55);
+  z-index:-2;
 }
 
-#bg .active{
-  opacity:1;
-}
-
-/* ===== OVERLAY ===== */
-#bg::after{
-  content:"";
-  position:absolute;
+.overlay{
+  position:fixed;
   inset:0;
-  background:rgba(0,0,0,.35);
+  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.25));
+  z-index:-1;
 }
 
-/* ===== LOGO ===== */
-#logo{
-  position:fixed;
-  top:16px;
-  left:50%;
-  transform:translateX(-50%);
-  z-index:10;
+header{
+  display:flex;
+  align-items:center;
+  padding:16px 24px;
 }
-#logo img{
-  width:150px;
-  filter:drop-shadow(0 0 15px var(--cyan));
-}
+header img{width:80px}
 
-/* ===== PLAYER ===== */
-#playerBox{
-  position:fixed;
-  bottom:20px;
+.panel{
+  position:absolute;
+  bottom:40px;
   left:50%;
   transform:translateX(-50%);
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(10px);
-  padding:22px 34px;
+  background:var(--glass);
+  padding:18px 30px;
   border-radius:18px;
-  border:1px solid rgba(0,255,255,.4);
-  box-shadow:0 0 25px rgba(0,255,255,.35);
   text-align:center;
+  min-width:320px;
+  backdrop-filter:blur(12px);
 }
 
-#playerBox h1{
-  margin:0;
-  font-family:Orbitron;
-  color:var(--cyan);
-}
-
-#song{
-  margin-top:6px;
-  font-weight:600;
-  color:#ff4d4d;
-  animation:pulse 1s infinite;
+.live{
+  display:inline-block;
+  background:var(--primary);
+  padding:4px 14px;
+  border-radius:20px;
+  font-size:12px;
+  animation:pulse 1.3s infinite;
 }
 
 @keyframes pulse{
-  50%{transform:scale(1.1)}
+  0%{opacity:1}
+  50%{opacity:.45}
+  100%{opacity:1}
 }
 
-/* ===== MODAL ===== */
-#modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:20;
-}
-
-#modal div{
-  background:#111;
-  padding:30px;
-  border-radius:14px;
-  text-align:center;
-}
+.track{margin-top:10px;font-size:18px;font-weight:bold}
+.artist{font-size:14px;opacity:.85}
 
 button{
-  margin-top:16px;
-  padding:12px 26px;
+  margin-top:14px;
+  padding:10px 30px;
   border:none;
-  border-radius:8px;
-  font-weight:bold;
+  border-radius:30px;
+  background:var(--primary);
+  color:#fff;
   cursor:pointer;
-  background:linear-gradient(90deg,#00ffff,#006bff);
+  font-weight:bold;
 }
+
+.notice{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:var(--glass);
+  padding:20px 34px;
+  border-radius:20px;
+}
+
+.hidden{display:none}
 </style>
 </head>
 
 <body>
 
-<div id="bg">
-  <video id="bgVideo" muted playsinline></video>
-  <img id="bgImage">
+<video id="bgVideo" muted playsinline></video>
+<img id="bgImage">
+<div class="overlay"></div>
+
+<header>
+  <img src="logo-4mfm.png" alt="4MFM">
+</header>
+
+<div class="notice" id="notice">
+  Clique em <b>SINTONIZAR</b> para ouvir a rádio
 </div>
 
-<div id="logo">
-  <img src="logo-4mfm.png">
+<div class="panel">
+  <div class="live">AO VIVO</div>
+  <div class="track" id="track">—</div>
+  <div class="artist" id="artist">—</div>
+  <button id="start">Sintonizar</button>
 </div>
 
-<div id="modal">
-  <div>
-    <h2>Ativar Rádio</h2>
-    <p>Toque para ouvir a 4MFM</p>
-    <button id="start">OUVIR AGORA</button>
-  </div>
-</div>
-
-<div id="playerBox">
-  <h1>4MFM · AO VIVO</h1>
-  <div id="song">Carregando…</div>
-</div>
-
-<audio id="audio" playsinline></audio>
+<audio id="audio"></audio>
 
 <script>
-const audio = document.getElementById("audio");
-const songEl = document.getElementById("song");
-const startBtn = document.getElementById("start");
-const modal = document.getElementById("modal");
+/* ================= CONFIG ================= */
+const MUSIC_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica";
+const ANN_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer";
+const SAVE_KEY="4mfm_state_v2";
 
-const bgVideo = document.getElementById("bgVideo");
-const bgImage = document.getElementById("bgImage");
+const videos=[...Array(6)].map((_,i)=>`video${i+1}.mp4`);
+const images=[...Array(037)].map((_,i)=>`img${String(i+1).padStart(3,'0')}.png`);
 
-audio.volume = 1;
+/* ================= STATE ================= */
+let vIndex=0,iIndex=0,mode="video";
+let music=[],announcer=[];
+let started=false,restoring=false;
 
-/* MIDIAS */
-const videos = [
-  "midia/video1.mp4",
-  "midia/video2.mp4"
-];
+/* ================= ELEMENTS ================= */
+const bgVideo=document.getElementById("bgVideo");
+const bgImage=document.getElementById("bgImage");
+const audio=document.getElementById("audio");
 
-const images = [
-  "midia/img01.jpg","midia/img02.jpg","midia/img03.jpg"
-];
+/* ================= HELPERS ================= */
+const shuffle=a=>a.sort(()=>Math.random()-.5);
 
-let mediaIndex = 0;
-let useVideo = true;
+function formatName(name){
+  return name.replace('.mp3','')
+    .replace(/[._]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim()
+    .replace(/\b(e|de|do|da|dos|das)\b/gi,m=>m.toLowerCase())
+    .replace(/\b\w/g,l=>l.toUpperCase());
+}
 
-/* FUNDO */
-function nextBackground(){
-  bgVideo.classList.remove("active");
-  bgImage.classList.remove("active");
+function split(name){
+  const p=name.split(" - ");
+  return p.length>1
+    ?{artist:p[0],track:p.slice(1).join(" - ")}
+    :{artist:"",track:name};
+}
 
-  if(useVideo){
-    bgVideo.src = videos[mediaIndex % videos.length];
+/* ================= MEDIA ================= */
+function showMedia(){
+  if(mode==="video"){
+    bgImage.style.display="none";
+    bgVideo.style.display="block";
+    bgVideo.src=videos[vIndex];
     bgVideo.play();
-    bgVideo.classList.add("active");
   }else{
-    bgImage.src = images[mediaIndex % images.length];
-    bgImage.classList.add("active");
+    bgVideo.pause();
+    bgVideo.style.display="none";
+    bgImage.style.display="block";
+    bgImage.src=images[iIndex];
+    setTimeout(nextMedia,8000);
   }
-
-  useVideo = !useVideo;
-  mediaIndex++;
 }
 
-bgVideo.onended = nextBackground;
-
-/* AUDIO */
-let playlist=[];
-
-async function loadSongs(){
-  const r = await fetch("https://api.github.com/repos/BRAAR-ORG/4mfm-api/releases/tags/songs");
-  const d = await r.json();
-  playlist = d.assets.filter(a=>a.name.endsWith(".mp3"));
+function nextMedia(){
+  if(mode==="video"){
+    vIndex++;
+    if(vIndex>=videos.length){
+      mode="image";
+      iIndex=0;
+    }
+  }else{
+    iIndex++;
+    if(iIndex>=images.length){
+      mode="video";
+      vIndex=0;
+    }
+  }
+  showMedia();
 }
 
-async function playNext(){
-  const m = playlist[Math.random()*playlist.length|0];
-  songEl.textContent = m.name.replace(".mp3","").replace(/[.-]/g," ");
-  audio.src = m.browser_download_url;
-  await audio.play();
+bgVideo.onended=nextMedia;
+
+/* ================= CACHE ================= */
+function saveState(isAnn){
+  if(!audio.src) return;
+  localStorage.setItem(SAVE_KEY,JSON.stringify({
+    src:audio.src,
+    time:audio.currentTime,
+    isAnn,
+    track:track.innerText,
+    artist:artist.innerText
+  }));
 }
 
-audio.onended = playNext;
+function restoreState(){
+  const s=localStorage.getItem(SAVE_KEY);
+  if(!s) return false;
+  try{
+    const d=JSON.parse(s);
+    restoring=true;
+    audio.src=d.src;
+    audio.currentTime=d.time||0;
+    track.innerText=d.track;
+    artist.innerText=d.artist;
+    audio.play().finally(()=>restoring=false);
+    return true;
+  }catch{return false;}
+}
 
-/* START */
-startBtn.onclick = async ()=>{
-  modal.style.display="none";
+/* ================= AUDIO ================= */
+async function loadAudio(){
+  const m=await fetch(MUSIC_API).then(r=>r.json());
+  const a=await fetch(ANN_API).then(r=>r.json());
+  music=shuffle(m.assets.filter(x=>x.name.endsWith(".mp3")));
+  announcer=shuffle(a.assets.filter(x=>x.name.endsWith(".mp3")));
+}
 
-  const ctx = new (window.AudioContext||window.webkitAudioContext)();
-  if(ctx.state==="suspended") await ctx.resume();
+function playAudio(){
+  if(restoring) return;
+  if(!music.length) return loadAudio().then(playAudio);
 
-  await loadSongs();
-  await playNext();
-  nextBackground();
+  const isAnn=Math.random()<0.2 && announcer.length;
+  const src=isAnn?announcer.shift():music.shift();
+
+  audio.src=src.browser_download_url;
+  audio.currentTime=0;
+  audio.play();
+
+  if(isAnn){
+    track.innerText="Mensagem da Rádio";
+    artist.innerText="Kiara • 4MFM";
+  }else{
+    const info=split(formatName(src.name));
+    track.innerText=info.track;
+    artist.innerText=info.artist;
+  }
+}
+
+audio.onended=playAudio;
+setInterval(()=>saveState(artist.innerText.includes("Kiara")),2000);
+
+/* ================= START ================= */
+start.onclick=async()=>{
+  if(started) return;
+  started=true;
+  notice.classList.add("hidden");
+  await loadAudio();
+  if(!restoreState()) playAudio();
+  showMedia();
 };
 </script>
 
