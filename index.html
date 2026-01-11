@@ -121,7 +121,7 @@ const MUSIC_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags
 const ANN_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer";
 
 const videos=[...Array(6)].map((_,i)=>`video${i+1}.mp4`);
-const images=[...Array(25)].map((_,i)=>`img${String(i+1).padStart(3,'0')}.png`);
+const images=[...Array(025)].map((_,i)=>`img${String(i+1).padStart(3,'0')}.png`);
 
 const SAVE_KEY="4mfm_radio_state";
 const ANNOUNCER_INTERVAL = 6 * 60 * 1000; // 6 minutos
@@ -269,3 +269,4 @@ start.onclick=async()=>{
 </script>
 </body>
 </html>
+
