@@ -32,7 +32,9 @@ body{background:#000;color:#fff;overflow:hidden}
   z-index:-1;
 }
 
-header{padding:16px 24px}
+header{
+  padding:16px 24px;
+}
 header img{width:70px}
 
 .panel{
@@ -50,10 +52,11 @@ header img{width:70px}
 
 .live{
   background:var(--primary);
-  padding:4px 12px;
+  padding:4px 14px;
   border-radius:20px;
   font-size:12px;
   animation:pulse 1.4s infinite;
+  display:inline-block;
 }
 
 @keyframes pulse{
@@ -84,6 +87,7 @@ button{
   padding:20px 30px;
   border-radius:20px;
 }
+
 .hidden{display:none}
 </style>
 </head>
@@ -119,13 +123,13 @@ const ANN_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/a
 const videos=[...Array(6)].map((_,i)=>`video${i+1}.mp4`);
 const images=[...Array(25)].map((_,i)=>`img${String(i+1).padStart(3,'0')}.png`);
 
-const SAVE_KEY="4mfm_state";
-const ANN_COOLDOWN = 3 * 60 * 1000; // 3 minutos
+const SAVE_KEY="4mfm_radio_state";
+const ANNOUNCER_INTERVAL = 6 * 60 * 1000; // 6 minutos
 
 /* ================= STATE ================= */
 let videoIndex=0,imageIndex=0,mode="video";
 let music=[],announcer=[],started=false,restoring=false;
-let lastAnnouncerTime = 0;
+let lastAnnouncerTime=0;
 
 /* ================= ELEMENTS ================= */
 const bgVideo=document.getElementById("bgVideo");
@@ -147,7 +151,9 @@ function cleanName(n){
 
 function splitName(n){
   const p=n.split(" - ");
-  return p.length>1?{artist:p[0],track:p.slice(1).join(" - ")}:{artist:"",track:n};
+  return p.length>1
+    ?{artist:p[0],track:p.slice(1).join(" - ")}
+    :{artist:"",track:n};
 }
 
 /* ================= MEDIA ================= */
@@ -170,17 +176,50 @@ function nextMedia(){
   if(mode==="video"){
     videoIndex++;
     if(videoIndex>=videos.length){
-      mode="image"; imageIndex=0;
+      mode="image";
+      imageIndex=0;
     }
   }else{
     imageIndex++;
     if(imageIndex>=images.length){
-      mode="video"; videoIndex=0;
+      mode="video";
+      videoIndex=0;
     }
   }
   playMedia();
 }
+
 bgVideo.onended=nextMedia;
+
+/* ================= AUDIO CACHE ================= */
+function saveState(isAnn){
+  if(!audio.src) return;
+  localStorage.setItem(SAVE_KEY,JSON.stringify({
+    src:audio.src,
+    time:audio.currentTime,
+    isAnn,
+    title:track.innerText,
+    artist:artist.innerText,
+    lastAnnouncerTime
+  }));
+}
+
+function restoreState(){
+  const s=localStorage.getItem(SAVE_KEY);
+  if(!s) return false;
+  try{
+    const d=JSON.parse(s);
+    audio.src=d.src;
+    audio.currentTime=d.time||0;
+    audio.volume=1.0;
+    lastAnnouncerTime=d.lastAnnouncerTime||0;
+    restoring=true;
+    track.innerText=d.title||"—";
+    artist.innerText=d.isAnn?"Kiara":d.artist||"";
+    audio.play().finally(()=>restoring=false);
+    return true;
+  }catch{return false;}
+}
 
 /* ================= AUDIO ================= */
 async function loadAudio(){
@@ -194,58 +233,29 @@ function playAudio(){
   if(restoring) return;
   if(music.length===0) return loadAudio().then(playAudio);
 
-  const now = Date.now();
-  const canAnn = announcer.length && (now - lastAnnouncerTime > ANN_COOLDOWN);
-  const isAnn = Math.random()<0.2 && canAnn;
+  const now=Date.now();
+  const canAnnounce = announcer.length && (now-lastAnnouncerTime)>ANNOUNCER_INTERVAL;
+  const isAnn = Math.random()<0.2 && canAnnounce;
 
   const src = isAnn ? announcer.shift() : music.shift();
-
-  audio.src = src.browser_download_url;
-  audio.currentTime = 0;
-  audio.volume = 1.0;
+  audio.src=src.browser_download_url;
+  audio.currentTime=0;
+  audio.volume=1.0;
   audio.play();
 
   if(isAnn){
-    lastAnnouncerTime = now;
-    document.getElementById("track").innerText="Mensagem da Rádio";
-    document.getElementById("artist").innerText="Kiara";
+    lastAnnouncerTime=now;
+    track.innerText="Mensagem da Rádio";
+    artist.innerText="Kiara";
   }else{
-    const name=cleanName(src.name);
-    const info=splitName(name);
-    document.getElementById("track").innerText=info.track;
-    document.getElementById("artist").innerText=info.artist;
+    const info=splitName(cleanName(src.name));
+    track.innerText=info.track;
+    artist.innerText=info.artist;
   }
 }
 
-audio.onended = playAudio;
-
-/* ================= CACHE ================= */
-function saveState(){
-  if(!audio.src) return;
-  localStorage.setItem(SAVE_KEY,JSON.stringify({
-    src:audio.src,
-    time:audio.currentTime,
-    track:track.innerText,
-    artist:artist.innerText
-  }));
-}
-
-function restoreState(){
-  const s=localStorage.getItem(SAVE_KEY);
-  if(!s) return false;
-  try{
-    const d=JSON.parse(s);
-    audio.src=d.src;
-    audio.currentTime=d.time||0;
-    audio.volume=1.0;
-    restoring=true;
-    track.innerText=d.track;
-    artist.innerText=d.artist;
-    audio.play().finally(()=>restoring=false);
-    return true;
-  }catch{return false}
-}
-setInterval(saveState,2000);
+audio.onended=playAudio;
+setInterval(()=>saveState(artist.innerText==="Kiara"),2000);
 
 /* ================= START ================= */
 start.onclick=async()=>{
@@ -257,6 +267,5 @@ start.onclick=async()=>{
   playMedia();
 };
 </script>
-
 </body>
 </html>
