@@ -1,272 +1,323 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>4MFM RADIO • AO VIVO</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" href="favicon.ico">
+    <meta charset="UTF-8">
+    <title>4MFM RADIO • AO VIVO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
 
-<style>
-:root{
-  --primary:#e10600;
-  --glass:rgba(0,0,0,.55);
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-body{background:#000;color:#fff;overflow:hidden}
+    <style>
+        :root {
+            --primary: #e10600;
+            --primary-hover: #ff1a14;
+            --glass: rgba(0, 0, 0, 0.65);
+            --text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
 
-#bgVideo,#bgImage{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  filter:blur(6px) brightness(.6);
-  display:none;
-  z-index:-2;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-.overlay{
-  position:fixed;
-  inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.8),rgba(0,0,0,.3));
-  z-index:-1;
-}
+        body { 
+            background: #000; 
+            color: #fff; 
+            overflow: hidden; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+        }
 
-header{
-  padding:16px 24px;
-}
-header img{width:70px}
+        /* Background Layers */
+        #bgVideo, #bgImage {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: blur(8px) brightness(0.5);
+            z-index: -2;
+            transition: opacity 1s ease-in-out;
+            display: none;
+        }
 
-.panel{
-  position:absolute;
-  bottom:40px;
-  left:50%;
-  transform:translateX(-50%);
-  background:var(--glass);
-  padding:18px 28px;
-  border-radius:18px;
-  text-align:center;
-  min-width:320px;
-  backdrop-filter:blur(10px);
-}
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%);
+            z-index: -1;
+        }
 
-.live{
-  background:var(--primary);
-  padding:4px 14px;
-  border-radius:20px;
-  font-size:12px;
-  animation:pulse 1.4s infinite;
-  display:inline-block;
-}
+        /* UI Elements */
+        header { padding: 20px 30px; position: relative; z-index: 10; }
+        header img { width: 80px; filter: drop-shadow(var(--text-shadow)); }
 
-@keyframes pulse{
-  0%{opacity:1}
-  50%{opacity:.4}
-  100%{opacity:1}
-}
+        .notice {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--glass);
+            padding: 20px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 5;
+            transition: opacity 0.5s;
+        }
 
-.track{margin-top:10px;font-size:18px;font-weight:bold}
-.artist{font-size:14px;opacity:.85}
+        .panel {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            padding: 25px;
+            border-radius: 24px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
 
-button{
-  margin-top:14px;
-  padding:10px 26px;
-  border:none;
-  border-radius:30px;
-  background:var(--primary);
-  color:#fff;
-  cursor:pointer;
-}
+        .live-tag {
+            background: var(--primary);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
 
-.notice{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  background:var(--glass);
-  padding:20px 30px;
-  border-radius:20px;
-}
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+        }
 
-.hidden{display:none}
-</style>
+        .track { font-size: 20px; font-weight: 700; margin-bottom: 4px; text-shadow: var(--text-shadow); }
+        .artist { font-size: 15px; opacity: 0.8; margin-bottom: 20px; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        button:hover { background: var(--primary-hover); transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #444; cursor: not-allowed; transform: none; }
+
+        .hidden { opacity: 0; pointer-events: none; }
+    </style>
 </head>
 
 <body>
 
-<video id="bgVideo" muted playsinline></video>
-<img id="bgImage">
-<div class="overlay"></div>
+    <video id="bgVideo" muted playsinline></video>
+    <img id="bgImage" alt="Background">
+    <div class="overlay"></div>
 
-<header>
-  <img src="logo-4mfm.png">
-</header>
+    <header>
+        <img src="logo-4mfm.png" alt="4MFM LOGO">
+    </header>
 
-<div class="notice" id="notice">
-  Clique em <b>SINTONIZAR</b> para ouvir a rádio
-</div>
+    <div class="notice" id="notice">
+        Clique para <b>SINTONIZAR</b>
+    </div>
 
-<div class="panel">
-  <div class="live">AO VIVO</div>
-  <div class="track" id="track">—</div>
-  <div class="artist" id="artist">—</div>
-  <button id="start">Sintonizar</button>
-</div>
+    <main class="panel">
+        <div class="live-tag">AO VIVO</div>
+        <div class="track" id="track">Aguardando...</div>
+        <div class="artist" id="artist">4MFM RADIO</div>
+        <button id="startBtn">Sintonizar agora</button>
+    </main>
 
-<audio id="audio"></audio>
+    <audio id="audio" preload="auto"></audio>
 
 <script>
-/* ================= CONFIG ================= */
-const MUSIC_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica";
-const ANN_API="https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer";
+/** * CONFIGURAÇÕES E CONSTANTES
+ */
+const CONFIG = {
+    MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica",
+    ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer",
+    VIDEOS: Array.from({length: 6}, (_, i) => `video${i + 1}.mp4`),
+    IMAGES: Array.from({length: 25}, (_, i) => `img${String(i + 1).padStart(3, '0')}.png`),
+    SAVE_KEY: "4mfm_radio_state",
+    ANNOUNCER_INTERVAL: 6 * 60 * 1000,
+    IMAGE_DURATION: 7000
+};
 
-const videos=[...Array(6)].map((_,i)=>`video${i+1}.mp4`);
-const images=[...Array(025)].map((_,i)=>`img${String(i+1).padStart(3,'0')}.png`);
+/**
+ * ESTADO DO APP
+ */
+const state = {
+    mode: 'video',
+    videoIdx: 0,
+    imageIdx: 0,
+    musicList: [],
+    announcerList: [],
+    lastAnnouncer: 0,
+    isStarted: false
+};
 
-const SAVE_KEY="4mfm_radio_state";
-const ANNOUNCER_INTERVAL = 6 * 60 * 1000; // 6 minutos
+/**
+ * ELEMENTOS DOM
+ */
+const el = {
+    video: document.getElementById("bgVideo"),
+    image: document.getElementById("bgImage"),
+    audio: document.getElementById("audio"),
+    track: document.getElementById("track"),
+    artist: document.getElementById("artist"),
+    startBtn: document.getElementById("startBtn"),
+    notice: document.getElementById("notice")
+};
 
-/* ================= STATE ================= */
-let videoIndex=0,imageIndex=0,mode="video";
-let music=[],announcer=[],started=false,restoring=false;
-let lastAnnouncerTime=0;
+/**
+ * UTILITÁRIOS
+ */
+const utils = {
+    shuffle: (arr) => arr.sort(() => Math.random() - 0.5),
+    
+    formatName: (name) => {
+        let clean = name.replace('.mp3', '').replace(/[._]+/g, ' ').trim();
+        return clean.split(" - ");
+    },
 
-/* ================= ELEMENTS ================= */
-const bgVideo=document.getElementById("bgVideo");
-const bgImage=document.getElementById("bgImage");
-const audio=document.getElementById("audio");
-audio.volume = 1.0;
-
-/* ================= HELPERS ================= */
-const shuffle=a=>a.sort(()=>Math.random()-.5);
-
-function cleanName(n){
-  return n.replace('.mp3','')
-    .replace(/[._]+/g,' ')
-    .replace(/\s+/g,' ')
-    .trim()
-    .replace(/\b(e|de|do|da|dos|das)\b/gi,m=>m.toLowerCase())
-    .replace(/\b\w/g,l=>l.toUpperCase());
-}
-
-function splitName(n){
-  const p=n.split(" - ");
-  return p.length>1
-    ?{artist:p[0],track:p.slice(1).join(" - ")}
-    :{artist:"",track:n};
-}
-
-/* ================= MEDIA ================= */
-function playMedia(){
-  if(mode==="video"){
-    bgImage.style.display="none";
-    bgVideo.style.display="block";
-    bgVideo.src=videos[videoIndex];
-    bgVideo.play();
-  }else{
-    bgVideo.pause();
-    bgVideo.style.display="none";
-    bgImage.style.display="block";
-    bgImage.src=images[imageIndex];
-    setTimeout(nextMedia,7000);
-  }
-}
-
-function nextMedia(){
-  if(mode==="video"){
-    videoIndex++;
-    if(videoIndex>=videos.length){
-      mode="image";
-      imageIndex=0;
+    save: (isAnn) => {
+        if (!el.audio.src) return;
+        localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({
+            src: el.audio.src,
+            time: el.audio.currentTime,
+            title: el.track.innerText,
+            artist: el.artist.innerText,
+            lastAnn: state.lastAnnouncer
+        }));
     }
-  }else{
-    imageIndex++;
-    if(imageIndex>=images.length){
-      mode="video";
-      videoIndex=0;
+};
+
+/**
+ * LÓGICA DE MÍDIA (VÍDEO/IMAGEM)
+ */
+function updateVisuals() {
+    if (state.mode === "video") {
+        el.image.style.display = "none";
+        el.video.style.display = "block";
+        el.video.src = CONFIG.VIDEOS[state.videoIdx];
+        el.video.play().catch(() => nextVisual());
+    } else {
+        el.video.pause();
+        el.video.style.display = "none";
+        el.image.style.display = "block";
+        el.image.src = CONFIG.IMAGES[state.imageIdx];
+        setTimeout(nextVisual, CONFIG.IMAGE_DURATION);
     }
-  }
-  playMedia();
 }
 
-bgVideo.onended=nextMedia;
-
-/* ================= AUDIO CACHE ================= */
-function saveState(isAnn){
-  if(!audio.src) return;
-  localStorage.setItem(SAVE_KEY,JSON.stringify({
-    src:audio.src,
-    time:audio.currentTime,
-    isAnn,
-    title:track.innerText,
-    artist:artist.innerText,
-    lastAnnouncerTime
-  }));
+function nextVisual() {
+    if (state.mode === "video") {
+        state.videoIdx++;
+        if (state.videoIdx >= CONFIG.VIDEOS.length) {
+            state.mode = "image";
+            state.imageIdx = 0;
+        }
+    } else {
+        state.imageIdx++;
+        if (state.imageIdx >= CONFIG.IMAGES.length) {
+            state.mode = "video";
+            state.videoIdx = 0;
+        }
+    }
+    updateVisuals();
 }
 
-function restoreState(){
-  const s=localStorage.getItem(SAVE_KEY);
-  if(!s) return false;
-  try{
-    const d=JSON.parse(s);
-    audio.src=d.src;
-    audio.currentTime=d.time||0;
-    audio.volume=1.0;
-    lastAnnouncerTime=d.lastAnnouncerTime||0;
-    restoring=true;
-    track.innerText=d.title||"—";
-    artist.innerText=d.isAnn?"Kiara":d.artist||"";
-    audio.play().finally(()=>restoring=false);
-    return true;
-  }catch{return false;}
+el.video.onended = nextVisual;
+
+/**
+ * LÓGICA DE ÁUDIO
+ */
+async function fetchPlaylist() {
+    try {
+        const [mRes, aRes] = await Promise.all([
+            fetch(CONFIG.MUSIC_API).then(r => r.json()),
+            fetch(CONFIG.ANN_API).then(r => r.json())
+        ]);
+        
+        state.musicList = utils.shuffle(mRes.assets.filter(v => v.name.endsWith('.mp3')));
+        state.announcerList = utils.shuffle(aRes.assets.filter(v => v.name.endsWith('.mp3')));
+    } catch (err) {
+        el.track.innerText = "Erro ao carregar playlist";
+        console.error(err);
+    }
 }
 
-/* ================= AUDIO ================= */
-async function loadAudio(){
-  const m=await fetch(MUSIC_API).then(r=>r.json());
-  const a=await fetch(ANN_API).then(r=>r.json());
-  music=shuffle(m.assets.filter(x=>x.name.endsWith(".mp3")));
-  announcer=shuffle(a.assets.filter(x=>x.name.endsWith(".mp3")));
+async function playNext() {
+    if (state.musicList.length === 0) await fetchPlaylist();
+
+    const now = Date.now();
+    const shouldAnnounce = (now - state.lastAnnouncer) > CONFIG.ANNOUNCER_INTERVAL && Math.random() < 0.3;
+
+    let currentItem;
+    if (shouldAnnounce && state.announcerList.length > 0) {
+        currentItem = state.announcerList.shift();
+        state.lastAnnouncer = now;
+        el.track.innerText = "Mensagem da Rádio";
+        el.artist.innerText = "Kiara";
+    } else {
+        currentItem = state.musicList.shift();
+        const [artist, track] = utils.formatName(currentItem.name);
+        el.track.innerText = track || artist;
+        el.artist.innerText = track ? artist : "4MFM Hits";
+    }
+
+    el.audio.src = currentItem.browser_download_url;
+    el.audio.play().catch(console.error);
 }
 
-function playAudio(){
-  if(restoring) return;
-  if(music.length===0) return loadAudio().then(playAudio);
+el.audio.onended = playNext;
 
-  const now=Date.now();
-  const canAnnounce = announcer.length && (now-lastAnnouncerTime)>ANNOUNCER_INTERVAL;
-  const isAnn = Math.random()<0.2 && canAnnounce;
+/**
+ * INICIALIZAÇÃO
+ */
+el.startBtn.onclick = async () => {
+    if (state.isStarted) return;
+    
+    state.isStarted = true;
+    el.startBtn.disabled = true;
+    el.startBtn.innerText = "Sintonizando...";
+    el.notice.classList.add("hidden");
 
-  const src = isAnn ? announcer.shift() : music.shift();
-  audio.src=src.browser_download_url;
-  audio.currentTime=0;
-  audio.volume=1.0;
-  audio.play();
+    await fetchPlaylist();
+    
+    // Tenta restaurar estado anterior
+    const saved = localStorage.getItem(CONFIG.SAVE_KEY);
+    if (saved) {
+        const d = JSON.parse(saved);
+        el.audio.src = d.src;
+        el.audio.currentTime = d.time;
+        el.track.innerText = d.title;
+        el.artist.innerText = d.artist;
+        state.lastAnnouncer = d.lastAnn;
+        el.audio.play().catch(() => playNext());
+    } else {
+        playNext();
+    }
 
-  if(isAnn){
-    lastAnnouncerTime=now;
-    track.innerText="Mensagem da Rádio";
-    artist.innerText="Kiara";
-  }else{
-    const info=splitName(cleanName(src.name));
-    track.innerText=info.track;
-    artist.innerText=info.artist;
-  }
-}
-
-audio.onended=playAudio;
-setInterval(()=>saveState(artist.innerText==="Kiara"),2000);
-
-/* ================= START ================= */
-start.onclick=async()=>{
-  if(started) return;
-  started=true;
-  notice.classList.add("hidden");
-  await loadAudio();
-  if(!restoreState()) playAudio();
-  playMedia();
+    updateVisuals();
+    el.startBtn.innerText = "Tocando Agora";
+    
+    // Auto-save
+    setInterval(() => utils.save(), 5000);
 };
 </script>
 </body>
 </html>
-
