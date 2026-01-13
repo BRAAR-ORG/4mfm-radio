@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>4MFM RADIO • AO VIVO</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="favicon.ico">
 
     <style>
@@ -16,18 +14,15 @@
             --text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
         body { 
             background: #000; 
             color: #fff; 
             overflow: hidden; 
-            /* Fix para altura no iPhone (barra de endereço) */
-            height: 100vh;
-            height: 100dvh; 
+            height: 100vh; 
             display: flex; 
             flex-direction: column; 
-            -webkit-tap-highlight-color: transparent;
         }
 
         /* Background Layers */
@@ -48,7 +43,6 @@
             inset: 0;
             background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.8) 100%);
             z-index: -1;
-            pointer-events: none;
         }
 
         /* UI Elements */
@@ -64,17 +58,14 @@
             padding: 20px 40px;
             border-radius: 50px;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
             z-index: 5;
             transition: opacity 0.5s;
-            white-space: nowrap;
         }
 
         .panel {
             position: absolute;
-            bottom: 50px; /* Fallback */
-            bottom: max(50px, env(safe-area-inset-bottom) + 20px); /* iPhone X+ Safe Area */
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--glass);
@@ -84,7 +75,6 @@
             width: 90%;
             max-width: 400px;
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
@@ -119,13 +109,12 @@
             font-weight: bold;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s;
-            /* Melhoria de toque no iOS */
-            touch-action: manipulation;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        button:active { transform: scale(0.96); }
-        button:disabled { background: #444; cursor: default; opacity: 0.7; }
+        button:hover { background: var(--primary-hover); transform: scale(1.02); }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #444; cursor: not-allowed; transform: none; }
 
         .hidden { opacity: 0; pointer-events: none; }
     </style>
@@ -133,29 +122,30 @@
 
 <body>
 
-    <video id="bgVideo" muted playsinline autoplay loop></video>
+    <video id="bgVideo" muted playsinline></video>
     <img id="bgImage" alt="Background">
     <div class="overlay"></div>
 
     <header>
-        <img src="logo-4mfm.png" onerror="this.style.display='none'" alt="4MFM">
+        <img src="logo-4mfm.png" alt="4MFM LOGO">
     </header>
 
     <div class="notice" id="notice">
-        Toque para <b>SINTONIZAR</b>
+        Clique para <b>SINTONIZAR</b>
     </div>
 
     <main class="panel">
         <div class="live-tag">AO VIVO</div>
-        <div class="track" id="track">Carregando...</div>
+        <div class="track" id="track">Aguardando...</div>
         <div class="artist" id="artist">4MFM RADIO</div>
-        <button id="startBtn">Iniciar Rádio</button>
+        <button id="startBtn">Sintonizar agora</button>
     </main>
 
     <audio id="audio" preload="auto"></audio>
 
 <script>
-/** * CONFIGURAÇÕES */
+/** * CONFIGURAÇÕES E CONSTANTES
+ */
 const CONFIG = {
     MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica",
     ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer",
@@ -166,7 +156,9 @@ const CONFIG = {
     IMAGE_DURATION: 7000
 };
 
-/** * ESTADO */
+/**
+ * ESTADO DO APP
+ */
 const state = {
     mode: 'video',
     videoIdx: 0,
@@ -174,11 +166,12 @@ const state = {
     musicList: [],
     announcerList: [],
     lastAnnouncer: 0,
-    isStarted: false,
-    playlistReady: false
+    isStarted: false
 };
 
-/** * ELEMENTOS */
+/**
+ * ELEMENTOS DOM
+ */
 const el = {
     video: document.getElementById("bgVideo"),
     image: document.getElementById("bgImage"),
@@ -189,7 +182,9 @@ const el = {
     notice: document.getElementById("notice")
 };
 
-/** * UTILITÁRIOS */
+/**
+ * UTILITÁRIOS
+ */
 const utils = {
     shuffle: (arr) => arr.sort(() => Math.random() - 0.5),
     
@@ -198,46 +193,29 @@ const utils = {
         return clean.split(" - ");
     },
 
-    updateMediaSession: (title, artist) => {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: title,
-                artist: artist,
-                album: "4MFM RADIO",
-                artwork: [{ src: 'logo-4mfm.png', sizes: '512x512', type: 'image/png' }]
-            });
-            
-            // Controles de Play/Pause na tela bloqueada
-            navigator.mediaSession.setActionHandler('play', () => el.audio.play());
-            navigator.mediaSession.setActionHandler('pause', () => el.audio.pause());
-        }
-    },
-
-    save: () => {
-        if (!el.audio.src || el.audio.paused) return;
+    save: (isAnn) => {
+        if (!el.audio.src) return;
         localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({
             src: el.audio.src,
             time: el.audio.currentTime,
             title: el.track.innerText,
             artist: el.artist.innerText,
-            lastAnn: state.lastAnnouncer,
-            timestamp: Date.now() 
+            lastAnn: state.lastAnnouncer
         }));
     }
 };
 
-/** * VISUAIS */
+/**
+ * LÓGICA DE MÍDIA (VÍDEO/IMAGEM)
+ */
 function updateVisuals() {
-    // Tenta tocar vídeo silencioso (necessário interagir antes em alguns iOS)
-    if(el.video.paused && state.mode === 'video') el.video.play().catch(() => {});
-
     if (state.mode === "video") {
         el.image.style.display = "none";
         el.video.style.display = "block";
-        if(el.video.src.indexOf(CONFIG.VIDEOS[state.videoIdx]) === -1) {
-             el.video.src = CONFIG.VIDEOS[state.videoIdx];
-        }
+        el.video.src = CONFIG.VIDEOS[state.videoIdx];
+        el.video.play().catch(() => nextVisual());
     } else {
+        el.video.pause();
         el.video.style.display = "none";
         el.image.style.display = "block";
         el.image.src = CONFIG.IMAGES[state.imageIdx];
@@ -251,11 +229,6 @@ function nextVisual() {
         if (state.videoIdx >= CONFIG.VIDEOS.length) {
             state.mode = "image";
             state.imageIdx = 0;
-            updateVisuals();
-        } else {
-            // Se ainda tem vídeo, carrega e toca
-            el.video.src = CONFIG.VIDEOS[state.videoIdx];
-            el.video.play().catch(() => nextVisual());
         }
     } else {
         state.imageIdx++;
@@ -263,14 +236,16 @@ function nextVisual() {
             state.mode = "video";
             state.videoIdx = 0;
         }
-        updateVisuals();
     }
+    updateVisuals();
 }
 
 el.video.onended = nextVisual;
 
-/** * ÁUDIO */
-async function initPlaylist() {
+/**
+ * LÓGICA DE ÁUDIO
+ */
+async function fetchPlaylist() {
     try {
         const [mRes, aRes] = await Promise.all([
             fetch(CONFIG.MUSIC_API).then(r => r.json()),
@@ -279,58 +254,41 @@ async function initPlaylist() {
         
         state.musicList = utils.shuffle(mRes.assets.filter(v => v.name.endsWith('.mp3')));
         state.announcerList = utils.shuffle(aRes.assets.filter(v => v.name.endsWith('.mp3')));
-        state.playlistReady = true;
-        
-        if(!state.isStarted) el.track.innerText = "Pronto para tocar";
     } catch (err) {
-        el.track.innerText = "Erro de conexão";
+        el.track.innerText = "Erro ao carregar playlist";
         console.error(err);
     }
 }
 
 async function playNext() {
-    if (state.musicList.length === 0 && !state.playlistReady) return;
+    if (state.musicList.length === 0) await fetchPlaylist();
 
     const now = Date.now();
     const shouldAnnounce = (now - state.lastAnnouncer) > CONFIG.ANNOUNCER_INTERVAL && Math.random() < 0.3;
 
     let currentItem;
-    let title = "", artist = "";
-
     if (shouldAnnounce && state.announcerList.length > 0) {
         currentItem = state.announcerList.shift();
-        state.announcerList.push(currentItem); // Recicla anunciante
         state.lastAnnouncer = now;
-        title = "Mensagem da Rádio";
-        artist = "Kiara";
+        el.track.innerText = "Mensagem da Rádio";
+        el.artist.innerText = "Kiara";
     } else {
-        if(state.musicList.length === 0) await initPlaylist(); // Recarrega se acabar
         currentItem = state.musicList.shift();
-        const parts = utils.formatName(currentItem.name);
-        artist = parts[0];
-        title = parts[1] || "Hit 4MFM";
+        const [artist, track] = utils.formatName(currentItem.name);
+        el.track.innerText = track || artist;
+        el.artist.innerText = track ? artist : "4MFM Hits";
     }
 
-    // Atualiza UI
-    el.track.innerText = title;
-    el.artist.innerText = artist;
-    utils.updateMediaSession(title, artist);
-
-    // Toca
     el.audio.src = currentItem.browser_download_url;
-    el.audio.play().catch(e => console.log("Aguardando interação:", e));
+    el.audio.play().catch(console.error);
 }
 
 el.audio.onended = playNext;
-el.audio.onerror = () => setTimeout(playNext, 2000); // Pula se der erro
 
-/** * CONTROLES */
+/**
+ * INICIALIZAÇÃO
+ */
 el.startBtn.onclick = async () => {
-    // 1. Desbloqueio imediato do AudioContext (CRUCIAL PARA IOS)
-    el.audio.play().then(() => {
-        el.audio.pause();
-    }).catch(() => {});
-
     if (state.isStarted) return;
     
     state.isStarted = true;
@@ -338,53 +296,28 @@ el.startBtn.onclick = async () => {
     el.startBtn.innerText = "Sintonizando...";
     el.notice.classList.add("hidden");
 
-    // Tenta restaurar estado se for recente (< 1 hora)
+    await fetchPlaylist();
+    
+    // Tenta restaurar estado anterior
     const saved = localStorage.getItem(CONFIG.SAVE_KEY);
-    let restored = false;
-
     if (saved) {
         const d = JSON.parse(saved);
-        // Só restaura se foi salvo há menos de 30 min
-        if (Date.now() - (d.timestamp || 0) < 1800000) {
-            el.audio.src = d.src;
-            el.track.innerText = d.title;
-            el.artist.innerText = d.artist;
-            state.lastAnnouncer = d.lastAnn;
-            
-            // iOS precisa carregar metadados antes de pular tempo
-            el.audio.onloadedmetadata = () => {
-                el.audio.currentTime = d.time;
-                el.audio.play();
-                el.audio.onloadedmetadata = null; // Limpa listener
-            };
-            // Força load se metadata não vier
-            el.audio.load();
-            utils.updateMediaSession(d.title, d.artist);
-            restored = true;
-        }
+        el.audio.src = d.src;
+        el.audio.currentTime = d.time;
+        el.track.innerText = d.title;
+        el.artist.innerText = d.artist;
+        state.lastAnnouncer = d.lastAnn;
+        el.audio.play().catch(() => playNext());
+    } else {
+        playNext();
     }
 
-    if (!restored) {
-        if (state.playlistReady) {
-            playNext();
-        } else {
-            // Se clicou antes da playlist baixar
-            await initPlaylist();
-            playNext();
-        }
-    }
-
-    // Inicia vídeo
     updateVisuals();
     el.startBtn.innerText = "Tocando Agora";
     
     // Auto-save
-    setInterval(utils.save, 5000);
+    setInterval(() => utils.save(), 5000);
 };
-
-// Inicia download da lista imediatamente (não espera o clique)
-initPlaylist();
-
 </script>
 </body>
 </html>
