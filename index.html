@@ -116,6 +116,21 @@
         button:active { transform: scale(0.98); }
         button:disabled { background: #444; cursor: not-allowed; transform: none; }
 
+        /* Estilo do link de comentário */
+        .feedback-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s;
+        }
+
+        .feedback-link:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+
         .hidden { opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -139,6 +154,10 @@
         <div class="track" id="track">Aguardando...</div>
         <div class="artist" id="artist">4MFM RADIO</div>
         <button id="startBtn">Sintonizar agora</button>
+        
+        <a href="https://forms.gle/A4anYXWFJKoXGThY6" target="_blank" class="feedback-link">
+            Deixe seu comentário ou pedido
+        </a>
     </main>
 
     <audio id="audio" preload="auto"></audio>
