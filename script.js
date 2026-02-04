@@ -2,12 +2,15 @@
 const CONFIG = {
     MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica",
     ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer",
-    VIDEOS: Array.from({length: 6}, (_, i) => `video${i + 1}.mp4`),
-    IMAGES: Array.from({length: 25}, (_, i) => `img${String(i + 1).padStart(3, '0')}.png`),
+    // Caminhos atualizados para as pastas vids/ e imgs/
+    VIDEOS: Array.from({length: 6}, (_, i) => `vids/video${i + 1}.mp4`),
+    IMAGES: Array.from({length: 56}, (_, i) => `imgs/img${String(i + 1).padStart(3, '0')}.png`),
     SAVE_KEY: "4mfm_radio_state",
     ANNOUNCER_INTERVAL: 6 * 60 * 1000,
     IMAGE_DURATION: 7000,
-    LOGO_URL: "logo-4mfm.png" // Caminho para o ícone da notificação
+    LOGO_URL: "icon/logo-4mfm.png", // Caminho atualizado para a pasta icon/
+    // Silêncio para desbloqueio imediato no iPhone
+    SILENCE_SRC: "data:audio/wav;base64,UklGRigAAABXQVZFRm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAP8A/w=="
 };
 
 /** * ESTADO DO APP */
@@ -43,7 +46,7 @@ const utils = {
     },
 
     save: () => {
-        if (!el.audio.src) return;
+        if (!el.audio.src || el.audio.paused) return;
         localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({
             src: el.audio.src,
             time: el.audio.currentTime,
@@ -53,13 +56,23 @@ const utils = {
         }));
     },
 
-    // Função para enviar a notificação
     sendNotification: (title, body) => {
         if (state.notificationsEnabled && Notification.permission === "granted") {
             new Notification(title, {
                 body: body,
                 icon: CONFIG.LOGO_URL,
-                silent: true // Evita que a notificação faça barulho sobre a música
+                silent: true 
+            });
+        }
+    },
+
+    updateMediaSession: (title, artist) => {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist,
+                album: '4MFM RADIO',
+                artwork: [{ src: CONFIG.LOGO_URL, sizes: '512x512', type: 'image/png' }]
             });
         }
     }
@@ -73,7 +86,7 @@ function updateVisuals() {
         el.video.src = CONFIG.VIDEOS[state.videoIdx];
         el.video.play().catch(() => nextVisual());
     } else {
-        el.video.pause();
+        if (!el.video.paused) el.video.pause();
         el.video.style.display = "none";
         el.image.style.display = "block";
         el.image.src = CONFIG.IMAGES[state.imageIdx];
@@ -123,28 +136,32 @@ async function playNext() {
     const shouldAnnounce = (now - state.lastAnnouncer) > CONFIG.ANNOUNCER_INTERVAL && Math.random() < 0.3;
 
     let currentItem;
-    let notifyTitle = "4MFM RADIO";
-    let notifyBody = "";
+    let trackTitle, artistName;
 
     if (shouldAnnounce && state.announcerList.length > 0) {
         currentItem = state.announcerList.shift();
         state.lastAnnouncer = now;
-        el.track.innerText = "Mensagem da Rádio";
-        el.artist.innerText = "Kiara";
-        notifyBody = "Mensagem especial da Kiara";
+        trackTitle = "Mensagem da Rádio";
+        artistName = "Kiara";
     } else {
         currentItem = state.musicList.shift();
         const [artist, track] = utils.formatName(currentItem.name);
-        el.track.innerText = track || artist;
-        el.artist.innerText = track ? artist : "4MFM Hits";
-        notifyBody = `${el.track.innerText} - ${el.artist.innerText}`;
+        trackTitle = track || artist;
+        artistName = track ? artist : "4MFM Hits";
     }
 
+    el.track.innerText = trackTitle;
+    el.artist.innerText = artistName;
     el.audio.src = currentItem.browser_download_url;
-    el.audio.play().catch(console.error);
-
-    // Dispara a notificação
-    utils.sendNotification(notifyTitle, notifyBody);
+    el.audio.load();
+    
+    try {
+        await el.audio.play();
+        utils.updateMediaSession(trackTitle, artistName);
+        utils.sendNotification("4MFM RADIO", `${trackTitle} - ${artistName}`);
+    } catch (err) {
+        console.error("Erro no play:", err);
+    }
 }
 
 el.audio.onended = playNext;
@@ -153,6 +170,10 @@ el.audio.onended = playNext;
 el.startBtn.onclick = async () => {
     if (state.isStarted) return;
     
+    // DESBLOQUEIO IPHONE: Play imediato em silêncio antes de qualquer await
+    el.audio.src = CONFIG.SILENCE_SRC;
+    el.audio.play().catch(() => {});
+
     // Solicita permissão de notificação
     if ("Notification" in window) {
         const permission = await Notification.requestPermission();
@@ -168,15 +189,18 @@ el.startBtn.onclick = async () => {
     
     const saved = localStorage.getItem(CONFIG.SAVE_KEY);
     if (saved) {
-        const d = JSON.parse(saved);
-        el.audio.src = d.src;
-        el.audio.currentTime = d.time;
-        el.track.innerText = d.title;
-        el.artist.innerText = d.artist;
-        state.lastAnnouncer = d.lastAnn;
-        el.audio.play().then(() => {
-            utils.sendNotification("4MFM RADIO", `Voltando a ouvir: ${d.title}`);
-        }).catch(() => playNext());
+        try {
+            const d = JSON.parse(saved);
+            el.audio.src = d.src;
+            el.audio.currentTime = d.time;
+            el.track.innerText = d.title;
+            el.artist.innerText = d.artist;
+            state.lastAnnouncer = d.lastAnn;
+            await el.audio.play();
+            utils.updateMediaSession(d.title, d.artist);
+        } catch (e) {
+            playNext();
+        }
     } else {
         playNext();
     }
