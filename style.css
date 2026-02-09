@@ -38,7 +38,7 @@ body {
 
 /* UI Elements */
 header { padding: 20px 30px; position: relative; z-index: 10; }
-header img { width: 80px; filter: drop-shadow(var(--text-shadow)); }
+header img { width: 150px; filter: drop-shadow(var(--text-shadow)); }
 
 .notice {
     position: absolute;
@@ -120,5 +120,6 @@ button:disabled { background: #444; cursor: not-allowed; transform: none; }
     color: #fff;
     text-decoration: underline;
 }
+
 
 .hidden { opacity: 0; pointer-events: none; }
