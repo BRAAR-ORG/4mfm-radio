@@ -1,7 +1,7 @@
 /** * CONFIGURAÇÕES E CONSTANTES */
 const CONFIG = {
     MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/musica",
-    ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/announcer",
+    ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
     // Caminhos atualizados para as pastas vids/ e imgs/
     VIDEOS: Array.from({length: 6}, (_, i) => `vids/video${i + 1}.mp4`),
     IMAGES: Array.from({length: 56}, (_, i) => `imgs/img${String(i + 1).padStart(3, '0')}.png`),
@@ -210,3 +210,4 @@ el.startBtn.onclick = async () => {
     
     setInterval(() => utils.save(), 5000);
 };
+
