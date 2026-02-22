@@ -37,7 +37,7 @@ body {
 }
 
 /* UI Elements */
-header { padding: 20px 30px; position: relative; z-index: 10; text-align: center; }
+header { padding: 20px 30px; position: relative; z-index: 10; }
 header img { width: 80px; filter: drop-shadow(var(--text-shadow)); }
 
 .notice {
@@ -52,7 +52,6 @@ header img { width: 80px; filter: drop-shadow(var(--text-shadow)); }
     border: 1px solid rgba(255,255,255,0.1);
     z-index: 5;
     transition: opacity 0.5s;
-    cursor: pointer;
 }
 
 .panel {
@@ -78,31 +77,17 @@ header img { width: 80px; filter: drop-shadow(var(--text-shadow)); }
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 1px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    animation: pulse 2s infinite;
+    display: inline-block;
     margin-bottom: 15px;
-    box-shadow: 0 0 10px rgba(225, 6, 0, 0.4);
 }
 
-/* Equalizer Animation */
-.eq-bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 10px; }
-.eq-bars span {
-    width: 3px;
-    background-color: #fff;
-    border-radius: 1px;
-    animation: eq 1s infinite alternate ease-in-out;
-}
-.eq-bars span:nth-child(1) { height: 40%; animation-delay: 0s; }
-.eq-bars span:nth-child(2) { height: 100%; animation-delay: 0.3s; }
-.eq-bars span:nth-child(3) { height: 60%; animation-delay: 0.1s; }
-
-@keyframes eq {
-    0% { height: 20%; }
-    100% { height: 100%; }
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.95); }
 }
 
-.track { font-size: 20px; font-weight: 700; margin-bottom: 4px; text-shadow: var(--text-shadow); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track { font-size: 20px; font-weight: 700; margin-bottom: 4px; text-shadow: var(--text-shadow); }
 .artist { font-size: 15px; opacity: 0.8; margin-bottom: 20px; }
 
 button {
@@ -115,26 +100,12 @@ button {
     font-weight: bold;
     font-size: 16px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+button:hover { background: var(--primary-hover); transform: scale(1.02); }
 button:active { transform: scale(0.98); }
-
-/* Volume Control */
-.volume-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
-.vol-icon { font-size: 14px; opacity: 0.8; }
-#volumeSlider {
-    width: 60%;
-    accent-color: var(--primary);
-    cursor: pointer;
-}
+button:disabled { background: #444; cursor: not-allowed; transform: none; }
 
 .feedback-link {
     display: inline-block;
@@ -145,6 +116,9 @@ button:active { transform: scale(0.98); }
     transition: color 0.3s;
 }
 
-.feedback-link:hover { color: #fff; text-decoration: underline; }
+.feedback-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
 
-.hidden { opacity: 0; pointer-events: none; display: none !important; }
+.hidden { opacity: 0; pointer-events: none; }
