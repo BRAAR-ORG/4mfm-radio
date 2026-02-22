@@ -1,210 +1,263 @@
 const CONFIG = {
-MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
-ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
-LOGO: "./icon/logo-4mfm.png",
-ANNOUNCER_INTERVAL: 6 * 60 * 1000
+    MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
+    ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
+    VIDEOS: Array.from({length: 6}, (_, i) => `video${i + 1}.mp4`),
+    IMAGES: Array.from({length: 56}, (_, i) => `img${String(i + 1).padStart(3, '0')}.png`),
+    SAVE_KEY: "4mfm_radio_state",
+    ANNOUNCER_INTERVAL: 6 * 60 * 1000, // 6 minutos
+    IMAGE_DURATION: 7000,
+    LOGO_URL: "logo-4mfm.png"
 };
 
+/** * ESTADO DO APP
+ */
 const state = {
-musicList: [],
-announcerList: [],
-isStarted: false,
-lastAnnouncer: 0,
-notificationsEnabled: false
+    mode: 'video',
+    videoIdx: 0,
+    imageIdx: 0,
+    musicList: [],
+    announcerList: [],
+    lastAnnouncer: 0,
+    isStarted: false,
+    isPlaying: false,
+    notificationsEnabled: false
 };
 
+/** * ELEMENTOS DOM
+ */
 const el = {
-audio: document.getElementById("audio"),
-track: document.getElementById("track"),
-artist: document.getElementById("artist"),
-startBtn: document.getElementById("startBtn"),
-notice: document.getElementById("notice"),
-shareBtn: document.getElementById("shareBtn"),
-bgVideo: document.getElementById("bgVideo"),
-bgImage: document.getElementById("bgImage")
+    video: document.getElementById("bgVideo"),
+    image: document.getElementById("bgImage"),
+    audio: document.getElementById("audio"),
+    track: document.getElementById("track"),
+    artist: document.getElementById("artist"),
+    startBtn: document.getElementById("startBtn"),
+    notice: document.getElementById("notice"),
+    volumeContainer: document.getElementById("volumeContainer"),
+    volumeSlider: document.getElementById("volumeSlider"),
+    eqBars: document.getElementById("eqBars")
 };
 
-/* =========================
-FUNDO ALEATÓRIO
-=========================*/
+/** * UTILITÁRIOS E INTEGRAÇÃO COM SISTEMA
+ */
+const utils = {
+    shuffle: (arr) => arr.sort(() => Math.random() - 0.5),
+    
+    formatName: (name) => {
+        let clean = name.replace('.mp3', '').replace(/[._]+/g, ' ').trim();
+        return clean.split(" - ");
+    },
 
-const totalImages = 56;
-const totalVideos = 6;
+    save: () => {
+        if (!el.audio.src) return;
+        localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({
+            src: el.audio.src,
+            time: el.audio.currentTime,
+            title: el.track.innerText,
+            artist: el.artist.innerText,
+            lastAnn: state.lastAnnouncer
+        }));
+    },
 
-function setRandomBackground(){
+    updateMediaSession: (title, artist) => {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist,
+                album: '4MFM RADIO',
+                artwork: [{ src: CONFIG.LOGO_URL, sizes: '512x512', type: 'image/png' }]
+            });
 
-const useVideo = Math.random() < 0.4;
+            navigator.mediaSession.setActionHandler('play', togglePlayPause);
+            navigator.mediaSession.setActionHandler('pause', togglePlayPause);
+            navigator.mediaSession.setActionHandler('nexttrack', () => playNext());
+        }
+    },
 
-if(useVideo){
-const randomVideo = Math.floor(Math.random()*totalVideos)+1;
-el.bgVideo.src = `./vids/video${randomVideo}.mp4`;
-el.bgVideo.style.display="block";
-el.bgImage.style.display="none";
-}else{
-const randomImage = Math.floor(Math.random()*totalImages)+1;
-const imgNumber = String(randomImage).padStart(3,"0");
-el.bgImage.src = `./imgs/img${imgNumber}.png`;
-el.bgImage.style.display="block";
-el.bgVideo.style.display="none";
-}
-}
-
-/* =========================
-UTILS
-=========================*/
-
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
-return array;
-}
-
-function formatTrackName(filename){
-
-let clean = filename
-.replace(".mp3","")
-.replace(/\.-\./g," |SEP| ")
-.replace(/\.e\./g," & ")
-.replace(/\./g," ")
-.replace(/\s+/g," ")
-.trim();
-
-if(clean.includes("|SEP|")){
-const parts = clean.split("|SEP|");
-return {
-artist: parts[0].trim(),
-track: parts[1].trim()
+    sendNotification: (title, body) => {
+        if (state.notificationsEnabled && Notification.permission === "granted") {
+            try {
+                new Notification(title, { body: body, icon: CONFIG.LOGO_URL, silent: true });
+            } catch (e) {
+                console.warn("Notificações não suportadas neste contexto mobile.");
+            }
+        }
+    }
 };
+
+/** * LÓGICA VISUAL E CONTROLES
+ */
+function updateVisuals() {
+    if (state.mode === "video") {
+        el.image.style.display = "none";
+        el.video.style.display = "block";
+        el.video.src = CONFIG.VIDEOS[state.videoIdx];
+        el.video.play().catch(() => nextVisual());
+    } else {
+        if (!el.video.paused) el.video.pause();
+        el.video.style.display = "none";
+        el.image.style.display = "block";
+        el.image.src = CONFIG.IMAGES[state.imageIdx];
+        setTimeout(nextVisual, CONFIG.IMAGE_DURATION);
+    }
 }
 
-return {
-artist: "4MFM RADIO",
-track: clean
-};
+function nextVisual() {
+    if (state.mode === "video") {
+        state.videoIdx++;
+        if (state.videoIdx >= CONFIG.VIDEOS.length) {
+            state.mode = "image";
+            state.imageIdx = 0;
+        }
+    } else {
+        state.imageIdx++;
+        if (state.imageIdx >= CONFIG.IMAGES.length) {
+            state.mode = "video";
+            state.videoIdx = 0;
+        }
+    }
+    updateVisuals();
 }
 
-/* =========================
-NOTIFICAÇÕES ALEATÓRIAS
-=========================*/
+el.video.onended = nextVisual;
 
-const musicMessages = [
-"Clássico que atravessa gerações!",
-"O som não para na 4MFM!",
-"Sintonize emoção!",
-"Aumenta o volume!",
-"Mais um sucesso no ar!"
-];
-
-const announcerMessages = [
-"Kiara está com você!",
-"A voz da 4MFM no ar!",
-"Mensagem especial chegando!",
-"Momento exclusivo da rádio!",
-"Kiara traz novidades!"
-];
-
-function sendNotification(title, body){
-
-if(!state.notificationsEnabled) return;
-
-if(Notification.permission === "granted"){
-new Notification(title,{
-body: body,
-icon: CONFIG.LOGO
+// Controle de Volume
+el.volumeSlider.addEventListener('input', (e) => {
+    el.audio.volume = e.target.value;
 });
-}
-}
 
-/* =========================
-FETCH
-=========================*/
-
-async function fetchPlaylist(){
-
-const [mRes,aRes] = await Promise.all([
-fetch(CONFIG.MUSIC_API).then(r=>r.json()),
-fetch(CONFIG.ANN_API).then(r=>r.json())
-]);
-
-state.musicList = shuffle(
-mRes.assets.filter(a=>a.name.endsWith(".mp3"))
-);
-
-state.announcerList = shuffle(
-aRes.assets.filter(a=>a.name.endsWith(".mp3"))
-);
-}
-
-/* =========================
-PLAYER
-=========================*/
-
-async function playNext(){
-
-setRandomBackground();
-
-if(state.musicList.length===0){
-await fetchPlaylist();
+/** * LÓGICA DE ÁUDIO
+ */
+async function fetchPlaylist() {
+    try {
+        const [mRes, aRes] = await Promise.all([
+            fetch(CONFIG.MUSIC_API).then(r => r.json()),
+            fetch(CONFIG.ANN_API).then(r => r.json()).catch(() => ({ assets: [] })) // Fallback se a locução falhar
+        ]);
+        
+        if (mRes.assets) {
+            state.musicList = utils.shuffle(mRes.assets.filter(v => v.name.endsWith('.mp3')));
+        }
+        if (aRes.assets) {
+            state.announcerList = utils.shuffle(aRes.assets.filter(v => v.name.endsWith('.mp3')));
+        }
+    } catch (err) {
+        el.track.innerText = "Erro ao carregar músicas";
+        console.error("Erro na API:", err);
+    }
 }
 
-const now = Date.now();
-let item;
-let isAnnouncer=false;
+async function playNext() {
+    if (state.musicList.length === 0) await fetchPlaylist();
+    if (state.musicList.length === 0) return; // Trava se ainda estiver vazio após o fetch
 
-if(
-(now-state.lastAnnouncer)>CONFIG.ANNOUNCER_INTERVAL &&
-Math.random()<0.3 &&
-state.announcerList.length>0
-){
-item=state.announcerList.shift();
-state.lastAnnouncer=now;
-isAnnouncer=true;
+    const now = Date.now();
+    const shouldAnnounce = (now - state.lastAnnouncer) > CONFIG.ANNOUNCER_INTERVAL && Math.random() < 0.3;
 
-const formatted=formatTrackName(item.name);
+    let currentItem, trackTitle, artistName;
 
-el.track.innerText=formatted.track;
-el.artist.innerText="Kiara • 4MFM";
+    if (shouldAnnounce && state.announcerList.length > 0) {
+        currentItem = state.announcerList.shift();
+        state.lastAnnouncer = now;
+        trackTitle = "Mensagem da Rádio";
+        artistName = "Kiara";
+    } else {
+        currentItem = state.musicList.shift();
+        const [artist, track] = utils.formatName(currentItem.name);
+        trackTitle = track || artist;
+        artistName = track ? artist : "4MFM Hits";
+    }
 
-const randomMsg=announcerMessages[Math.floor(Math.random()*announcerMessages.length)];
-sendNotification("🎙 Kiara no ar", randomMsg);
-
-}else{
-item=state.musicList.shift();
-const formatted=formatTrackName(item.name);
-
-el.track.innerText=formatted.track;
-el.artist.innerText=formatted.artist;
-
-const randomMsg=musicMessages[Math.floor(Math.random()*musicMessages.length)];
-sendNotification("🎵 Tocando Agora", randomMsg);
+    el.track.innerText = trackTitle;
+    el.artist.innerText = artistName;
+    el.audio.src = currentItem.browser_download_url;
+    
+    try {
+        await el.audio.play();
+        setPlayingState(true);
+        utils.updateMediaSession(trackTitle, artistName);
+        utils.sendNotification("4MFM RADIO", `Tocando agora: ${trackTitle}`);
+    } catch (err) {
+        console.error("Erro ao reproduzir áudio:", err);
+        setPlayingState(false);
+    }
 }
 
-el.audio.src=item.browser_download_url;
-await el.audio.play();
+el.audio.onended = playNext;
+
+/** * INICIALIZAÇÃO E CONTROLES (TOGGLE PLAY/PAUSE)
+ */
+function setPlayingState(playing) {
+    state.isPlaying = playing;
+    if (playing) {
+        el.startBtn.innerText = "⏸ Pausar Rádio";
+        el.eqBars.classList.remove("hidden");
+    } else {
+        el.startBtn.innerText = "▶ Continuar Rádio";
+        el.eqBars.classList.add("hidden");
+    }
 }
 
-el.audio.onended=playNext;
-
-/* =========================
-START
-=========================*/
-
-el.startBtn.addEventListener("click", async ()=>{
-
-if(state.isStarted) return;
-state.isStarted=true;
-
-if("Notification" in window){
-const permission=await Notification.requestPermission();
-state.notificationsEnabled=permission==="granted";
+async function togglePlayPause() {
+    if (state.isPlaying) {
+        el.audio.pause();
+        setPlayingState(false);
+    } else {
+        el.audio.play().then(() => {
+            setPlayingState(true);
+        }).catch(err => console.error("Erro no play:", err));
+    }
 }
 
-el.startBtn.disabled=true;
-el.notice.classList.add("hidden");
+// O aviso central também serve para iniciar a rádio
+el.notice.onclick = () => el.startBtn.click();
 
-await fetchPlaylist();
-await playNext();
+el.startBtn.onclick = async () => {
+    // Se já iniciou a sessão, o botão serve apenas para Play/Pause
+    if (state.isStarted) {
+        togglePlayPause();
+        return;
+    }
 
-});
+    // Fluxo da Primeira Inicialização (Desbloqueio iOS/Android)
+    el.audio.play().catch(() => {});
+    el.audio.pause();
+
+    if ("Notification" in window) {
+        const permission = await Notification.requestPermission();
+        state.notificationsEnabled = (permission === "granted");
+    }
+
+    state.isStarted = true;
+    el.startBtn.innerText = "Sintonizando...";
+    el.notice.classList.add("hidden");
+    el.volumeContainer.classList.remove("hidden"); // Mostra o volume
+
+    await fetchPlaylist();
+    
+    // Tenta restaurar última sessão
+    const saved = localStorage.getItem(CONFIG.SAVE_KEY);
+    if (saved) {
+        try {
+            const d = JSON.parse(saved);
+            el.audio.src = d.src;
+            el.audio.currentTime = d.time;
+            el.track.innerText = d.title;
+            el.artist.innerText = d.artist;
+            state.lastAnnouncer = d.lastAnn;
+            
+            await el.audio.play();
+            setPlayingState(true);
+            utils.updateMediaSession(d.title, d.artist);
+        } catch (e) {
+            playNext();
+        }
+    } else {
+        playNext();
+    }
+
+    updateVisuals();
+    
+    // Auto-save a cada 5 segundos
+    setInterval(() => utils.save(), 5000);
+};
