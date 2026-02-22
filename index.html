@@ -1,44 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>4MFM RADIO • AO VIVO</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>4MFM RADIO • AO VIVO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <meta name="description" content="Sintonize na 4MFM Radio. A melhor rádio online especializada em flashbacks e música antiga ao vivo.">
-    <meta name="keywords" content="radio, radio online, musica antiga, flashbacks, 4mfmradio">
-    
-    <link rel="icon" href="icon/favicon.ico">
-    <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e10600">
+
+<link rel="icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="logo-4mfm.png">
+<link rel="stylesheet" href="style.css">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="4MFM RADIO">
 </head>
 
 <body>
-    <video id="bgVideo" muted playsinline></video>
-    <img id="bgImage" alt="Background">
-    <div class="overlay"></div>
+<video id="bgVideo" muted playsinline></video>
+<img id="bgImage" alt="Background">
+<div class="overlay"></div>
 
-    <header>
-        <img src="icon/logo-4mfm.png" alt="4MFM LOGO">
-    </header>
+<header>
+<img src="logo-4mfm.png" alt="4MFM LOGO">
+</header>
 
-    <div class="notice" id="notice">
-        Clique para <b>SINTONIZAR</b>
-    </div>
+<div class="notice" id="notice">
+Clique para <b>SINTONIZAR</b>
+</div>
 
-    <main class="panel">
-        <div class="live-tag">AO VIVO</div>
-        <div class="track" id="track">Aguardando...</div>
-        <div class="artist" id="artist">4MFM RADIO</div>
-        <button id="startBtn">Sintonizar agora</button>
-        
-        <a href="https://forms.gle/A4anYXWFJKoXGThY6" target="_blank" class="feedback-link">
-            Deixe seu comentário ou pedido
-        </a>
-    </main>
+<main class="panel">
+<div class="live-tag">AO VIVO</div>
+<div class="track" id="track">Aguardando...</div>
+<div class="artist" id="artist">4MFM RADIO</div>
+<button id="startBtn">Sintonizar agora</button>
+<button id="shareBtn" style="margin-top:10px;background:#222;">
+Compartilhar Rádio
+</button>
 
-    <audio id="audio" preload="auto"></audio>
+<a href="https://forms.gle/A4anYXWFJKoXGThY6" target="_blank" class="feedback-link">
+Deixe seu comentário ou pedido
+</a>
+</main>
 
-    <script src="script.js"></script>
+<audio id="audio" preload="auto"></audio>
+
+<script src="script.js"></script>
+
+<script>
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('sw.js');
+}
+</script>
+
 </body>
 </html>
-
