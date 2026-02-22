@@ -1,0 +1,21 @@
+{
+"name": "4MFM RADIO",
+"short_name": "4MFM",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#000000",
+"theme_color": "#e10600",
+"orientation": "portrait",
+"icons": [
+{
+"src": "logo-4mfm.png",
+"type": "image/png",
+"sizes": "192x192"
+},
+{
+"src": "logo-4mfm.png",
+"type": "image/png",
+"sizes": "512x512"
+}
+]
+}
