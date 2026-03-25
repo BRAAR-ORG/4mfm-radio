@@ -2,52 +2,62 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>4MFM RADIO</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="icon/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>4MFM Rádio</title>
+    
+    <link rel="icon" type="image/png" href="icon/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <video id="bgVideo" muted playsinline></video>
-    <img id="bgImage" alt="Background">
-    <div class="overlay"></div>
 
-    <header>
-        <img src="icon/logo-4mfm.png" alt="4MFM LOGO">
-    </header>
+<div id="bg-wrapper">
+    <div id="bg-layer-1" class="bg-layer"></div>
+    <div id="bg-layer-2" class="bg-layer"></div>
+</div>
 
-    <div class="notice" id="notice">
-        Clique para <b>SINTONIZAR</b>
+<section id="screen-home" class="screen flex flex-col items-center justify-center text-center p-6 bg-black/60">
+    <h1 class="text-6xl md:text-8xl font-black text-white tracking-tighter mb-2">4M<span class="text-green-500">FM</span></h1>
+    <p class="text-green-500 tracking-[0.3em] md:tracking-[0.5em] font-bold text-xs md:text-sm mb-10">QUALIDADE MÁXIMA</p>
+    <button onclick="app.init()" class="bg-white text-black font-black px-10 py-5 md:px-16 md:py-6 rounded-full text-lg md:text-xl hover:bg-green-500 hover:text-white transition-all transform active:scale-90 shadow-2xl">
+        SINTONIZAR
+    </button>
+    <p id="status" class="mt-6 text-[10px] text-zinc-500 uppercase font-mono"></p>
+</section>
+
+<section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen">
+    <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative">
+        <header class="w-full flex justify-between md:justify-start items-center gap-6 absolute top-6 left-0 px-6 md:static md:mb-12">
+            <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-3 py-1.5 rounded-full font-black text-[9px] md:text-[10px]">
+                <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> <span id="badge-text">NO AR</span>
+            </div>
+            <div id="clock" class="text-white/50 font-mono text-sm md:text-lg tracking-widest">00:00:00</div>
+        </header>
+
+        <div class="visual-container glass rounded-[40px] md:rounded-[60px] flex flex-col items-center justify-center border border-white/10 shadow-2xl relative mb-8 md:mb-12 overflow-hidden mt-16 md:mt-0">
+            <img src="icon/logo-4mfm.png" alt="4MFM Logo" class="w-32 md:w-64 mb-6 drop-shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+            <div id="visualizer" class="flex items-end gap-2 md:gap-3 h-12 md:h-20">
+                <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            </div>
+        </div>
+
+        <div class="text-center md:text-left w-full">
+            <h2 id="title" class="text-2xl md:text-6xl font-black mb-6 leading-tight tracking-tight px-4 md:px-0">Sintonizando...</h2>
+            <button onclick="app.requestSong()" class="mx-auto md:mx-0 bg-green-500 text-black px-8 py-4 md:px-12 md:py-5 rounded-2xl md:rounded-3xl font-black hover:bg-white transition-all flex items-center gap-3 shadow-xl transform active:scale-95 text-sm md:text-base">
+                <span class="text-xl">🎵</span> PEÇA SUA MÚSICA!
+            </button>
+        </div>
     </div>
 
-    <main class="panel">
-        <div class="panel-header">
-            <div class="live-tag"><span class="pulse-dot"></span>AO VIVO</div>
-            <div class="clock" id="liveClock">00:00</div>
-            <div class="listeners">👥 <span id="listenerCount">--</span></div>
-        </div>
+    <div class="history-panel w-full md:w-[400px] glass border-l border-white/10 p-6 md:p-10 overflow-y-auto max-h-[40vh] md:max-h-screen">
+        <h3 class="text-xl md:text-2xl font-black mb-6 italic tracking-tighter border-b border-green-500/30 pb-4">HISTÓRICO</h3>
+        <div id="history-container" class="space-y-4 md:space-y-6"></div>
+    </div>
+</section>
 
-        <div class="visualizer hidden" id="visualizer">
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            <div class="bar"></div><div class="bar"></div>
-        </div>
+<audio id="audio" preload="auto"></audio>
 
-        <div class="track-info">
-            <div class="track" id="track">Aguardando...</div>
-            <div class="artist" id="artist">4MFM RADIO</div>
-        </div>
-
-        <button id="startBtn">Sintonizar agora</button>
-
-        <button id="shareBtn" class="share-btn hidden">Compartilhar a Rádio 📻</button>
-        
-        <a href="https://forms.gle/A4anYXWFJKoXGThY6" target="_blank" class="feedback-link">
-            Deixe seu comentário ou pedido
-        </a>
-    </main>
-
-    <audio id="audio" preload="auto"></audio>
-
-    <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
