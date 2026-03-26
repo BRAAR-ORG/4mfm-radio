@@ -1,11 +1,17 @@
-const ASSETS = {
-    images: Array.from({length: 56}, (_, i) => `./imgs/Img${String(i + 1).padStart(3, '0')}.png`),
-    videos: Array.from({length: 6}, (_, i) => `./vids/video${i + 1}.mp4`)
+const CONFIG = {
+    // A infraestrutura do GitHub opera silenciosamente no backend
+    API_MUSIC: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
+    API_ANN: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
+    ASSETS: {
+        images: Array.from({length: 56}, (_, i) => `./imgs/img${String(i + 1).padStart(3, '0')}.png`),
+        videos: Array.from({length: 6}, (_, i) => `./vids/video${i + 1}.mp4`)
+    },
+    CACHE_TIME: 15 * 60 * 1000,
+    CROSSFADE_TIME: 1500,
+    AVG_TRACK_MS: 180000, // Tempo médio estimado de uma música (3 minutos) para cálculos globais
+    LOGO: "icon/logo-4mfm.png",
+    FORM_URL: "https://forms.gle/QjCpUrdZRgqE81mA6"
 };
-
-const API_MUSICA = "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo";
-const API_LOCUTORA = "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura";
-const FORM_LINK = "https://forms.gle/QjCpUrdZRgqE81mA6";
 
 const app = {
     audio: document.getElementById("audio"),
@@ -13,189 +19,225 @@ const app = {
     locutores: [],
     history: JSON.parse(localStorage.getItem('4mfm_history')) || [],
     currentBgLayer: 1,
-    songCounter: parseInt(localStorage.getItem('4mfm_counter')) || 0,
-    nextLocutorAt: Math.floor(Math.random() * 3) + 3, 
+    isTransitioning: false,
 
     async init() {
         const statusEl = document.getElementById("status");
-        statusEl.innerText = "Conectando ao Fluxo...";
+        statusEl.innerText = "Sintonizando fluxo global...";
 
         try {
-            // Desbloqueia o áudio para Mobile
-            this.audio.play().catch(() => {});
-            this.audio.pause();
-
-            const [resM, resL] = await Promise.all([
-                fetch(API_MUSICA).then(r => r.json()),
-                fetch(API_LOCUTORA).then(r => r.json())
-            ]);
-
-            this.playlist = resM.assets.filter(a => a.name.endsWith(".mp3")).sort(() => Math.random() - 0.5);
-            this.locutores = resL.assets.filter(a => a.name.endsWith(".mp3"));
-
+            await this.loadData();
             this.showScreen("player");
             this.renderHistory();
             this.startBackground();
+            this.startClock();
+            this.simulateListeners();
             
-            // Retoma estado anterior se houver
-            const lastSrc = localStorage.getItem('4mfm_last_src');
-            if(lastSrc && lastSrc !== "null") {
-                this.audio.src = lastSrc;
-                this.audio.currentTime = parseFloat(localStorage.getItem('4mfm_position') || 0);
-                document.getElementById("title").innerText = localStorage.getItem('4mfm_last_title') || "Retomando...";
-            } else {
-                this.playNext();
-            }
-
-            this.audio.play().catch(() => {
-                statusEl.innerText = "Toque para liberar o som";
-                document.body.addEventListener('click', () => this.audio.play(), { once: true });
-            });
-
+            this.syncAndPlay(); 
             this.setupEvents();
-
         } catch (e) {
-            statusEl.innerText = "Erro: Sem conexão";
+            statusEl.innerText = "Falha na conexão do fluxo";
             console.error(e);
         }
     },
 
+    async loadData() {
+        const cached = localStorage.getItem('4mfm_cache');
+        if (cached) {
+            const data = JSON.parse(cached);
+            if (Date.now() - data.time < CONFIG.CACHE_TIME) {
+                this.playlist = data.playlist;
+                this.locutores = data.locutores;
+                return;
+            }
+        }
+
+        const [resM, resL] = await Promise.all([
+            fetch(CONFIG.API_MUSIC).then(r => r.json()),
+            fetch(CONFIG.API_ANN).then(r => r.json())
+        ]);
+
+        this.playlist = resM.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
+        this.locutores = resL.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
+
+        localStorage.setItem('4mfm_cache', JSON.stringify({
+            time: Date.now(),
+            playlist: this.playlist,
+            locutores: this.locutores
+        }));
+    },
+
+    getGlobalLiveState() {
+        const now = Date.now();
+        const totalBlocksElapsed = Math.floor(now / CONFIG.AVG_TRACK_MS);
+        const currentSecondOffset = (now % CONFIG.AVG_TRACK_MS) / 1000;
+        const isLocution = totalBlocksElapsed % 5 === 0;
+        const list = isLocution && this.locutores.length > 0 ? this.locutores : this.playlist;
+        const itemIndex = totalBlocksElapsed % list.length;
+
+        return {
+            item: list[itemIndex],
+            isLocution: isLocution,
+            startAtSecond: currentSecondOffset
+        };
+    },
+
+    async syncAndPlay() {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+
+        const liveState = this.getGlobalLiveState();
+        const item = liveState.item;
+        
+        const fullName = item.name.replace(".mp3", "").replace(/[._]+/g, " ");
+        const [artist, track] = fullName.includes("-") ? fullName.split("-") : ["4MFM Hits", fullName];
+
+        const step = 0.1;
+        const interval = CONFIG.CROSSFADE_TIME / 10;
+
+        // FADE OUT
+        if (!this.audio.paused && this.audio.currentTime > 0) {
+            for (let v = this.audio.volume; v > 0; v -= step) {
+                this.audio.volume = Math.max(0, v);
+                await new Promise(r => setTimeout(r, interval));
+            }
+        }
+
+        this.audio.src = item.browser_download_url;
+        this.audio.volume = 0; 
+        
+        // Aguarda metadados
+        await new Promise((resolve) => {
+            this.audio.onloadedmetadata = resolve;
+            this.audio.load();
+            setTimeout(resolve, 2000); 
+        });
+        
+        try {
+            if (this.audio.duration && liveState.startAtSecond < this.audio.duration) {
+                this.audio.currentTime = liveState.startAtSecond;
+            } else {
+                this.audio.currentTime = 0;
+            }
+
+            await this.audio.play();
+            
+            this.updateUI(artist.trim(), track.trim(), liveState.isLocution);
+            
+            if (!liveState.isLocution) {
+                this.addHistory(fullName);
+            }
+
+            // FADE IN
+            for (let v = 0; v <= 1; v += step) {
+                this.audio.volume = Math.min(1, v);
+                await new Promise(r => setTimeout(r, interval));
+            }
+        } catch (e) {
+            console.log("Navegador bloqueou autoplay. Aguardando toque.");
+            this.audio.currentTime = 0;
+            this.audio.volume = 1;
+            document.getElementById("title").innerText = "TOQUE PARA OUVIR";
+        } finally {
+            this.isTransitioning = false;
+        }
+    },
+
+    updateUI(artist, track, isKiara) {
+        document.getElementById("artist-name").innerText = isKiara ? "KIARA NO AR" : artist;
+        document.getElementById("title").innerText = isKiara ? "COMUNICADO DA REDE" : track;
+        
+        const badge = document.getElementById('badge-live');
+        // Volta as cores originais (Vermelho e Roxo para Kiara)
+        badge.style.backgroundColor = isKiara ? "#9333ea" : "#dc2626";
+        badge.style.color = "#fff";
+        document.getElementById('badge-text').innerText = isKiara ? "KIARA AO VIVO" : "NO AR";
+
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: track,
+                artist: artist,
+                album: "4MFM Rádio",
+                artwork: [{ src: CONFIG.LOGO, sizes: '512x512', type: 'image/png' }]
+            });
+            navigator.mediaSession.setActionHandler('nexttrack', null);
+            navigator.mediaSession.setActionHandler('previoustrack', null);
+            navigator.mediaSession.setActionHandler('seekto', null);
+        }
+    },
+
     setupEvents() {
+        this.audio.onended = () => this.syncAndPlay();
         this.audio.onplay = () => document.getElementById("visualizer").classList.add("playing");
         this.audio.onpause = () => document.getElementById("visualizer").classList.remove("playing");
-        this.audio.onended = () => this.playNext();
-        
-        // Se houver erro no arquivo, espera 2s antes de tentar o próximo (evita pular infinitamente)
-        this.audio.onerror = () => {
-            console.log("Erro no arquivo de áudio. Tentando próximo...");
-            setTimeout(() => this.playNext(), 2000);
-        };
-
-        // Salva progresso
-        setInterval(() => {
-            if(this.audio.src && !this.audio.paused) {
-                localStorage.setItem('4mfm_position', this.audio.currentTime);
-                localStorage.setItem('4mfm_last_src', this.audio.src);
-                localStorage.setItem('4mfm_last_title', document.getElementById("title").innerText);
-                localStorage.setItem('4mfm_counter', this.songCounter);
-            }
-        }, 4000);
+        this.audio.onerror = () => setTimeout(() => this.syncAndPlay(), 3000);
     },
 
     startBackground() {
-        this.changeBackground();
-        setInterval(() => {
-            if(!document.querySelector('.bg-layer video')) this.changeBackground();
-        }, 35000);
-    },
+        const change = () => {
+            const layer = document.getElementById(`bg-layer-${this.currentBgLayer}`);
+            const other = document.getElementById(`bg-layer-${this.currentBgLayer === 1 ? 2 : 1}`);
+            const isVid = Math.random() > 0.4;
+            const src = isVid ? 
+                CONFIG.ASSETS.videos[Math.floor(Math.random() * CONFIG.ASSETS.videos.length)] :
+                CONFIG.ASSETS.images[Math.floor(Math.random() * CONFIG.ASSETS.images.length)];
 
-    async changeBackground() {
-        const layer = document.getElementById(`bg-layer-${this.currentBgLayer}`);
-        const otherLayer = document.getElementById(`bg-layer-${this.currentBgLayer === 1 ? 2 : 1}`);
-        
-        const isVideo = Math.random() > 0.4 && ASSETS.videos.length > 0;
-        const file = isVideo ? 
-            ASSETS.videos[Math.floor(Math.random() * ASSETS.videos.length)] : 
-            ASSETS.images[Math.floor(Math.random() * ASSETS.images.length)];
+            layer.innerHTML = isVid ? 
+                `<video src="${src}" autoplay muted playsinline class="w-full h-full object-cover"></video>` :
+                `<img src="${src}" class="w-full h-full object-cover">`;
 
-        if(isVideo) {
-            layer.innerHTML = `<video src="${file}" autoplay muted playsinline class="w-full h-full object-cover"></video>`;
-            const v = layer.querySelector('video');
-            v.oncanplay = () => {
+            setTimeout(() => {
                 layer.classList.add('bg-active');
-                otherLayer.classList.remove('bg-active');
-            };
-            v.onended = () => this.changeBackground();
-        } else {
-            const img = new Image();
-            img.src = file;
-            img.onload = () => {
-                layer.innerHTML = `<img src="${file}" class="w-full h-full object-cover">`;
-                layer.classList.add('bg-active');
-                otherLayer.classList.remove('bg-active');
-            };
-        }
-        this.currentBgLayer = this.currentBgLayer === 1 ? 2 : 1;
-    },
-
-    playNext() {
-        // Lógica da Kiara
-        if (this.songCounter >= this.nextLocutorAt && this.locutores.length > 0) {
-            this.executePlay(this.locutores, "KIARA");
-            this.songCounter = 0;
-            this.nextLocutorAt = Math.floor(Math.random() * 3) + 3;
-        } else {
-            this.executePlay(this.playlist, "MUSICA");
-            this.songCounter++;
-        }
-    },
-
-    executePlay(list, type) {
-        if(!list || list.length === 0) return;
-        
-        const item = list[Math.floor(Math.random() * list.length)];
-        const cleanName = item.name.replace(".mp3","").replace(/_/g, " ").replace(/\./g, " ");
-        
-        this.audio.src = item.browser_download_url;
-        this.audio.load(); // Importante para Mobile
-
-        this.audio.play().then(() => {
-            const isKiara = type === "KIARA";
-            document.getElementById("title").innerText = isKiara ? "Kiara no AR!" : cleanName;
-            
-            const badge = document.getElementById('badge-live');
-            badge.style.backgroundColor = isKiara ? "#9333ea" : "#dc2626";
-            document.getElementById('badge-text').innerText = isKiara ? "KIARA AO VIVO" : "NO AR";
-
-            if(!isKiara) {
-                this.addHistory(cleanName);
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification("4MFM Rádio", { body: "Tocando agora: " + cleanName, icon: "icon/logo-4mfm.png" });
-                }
-            }
-        }).catch(e => {
-            console.log("Play bloqueado pelo navegador. Aguardando interação.");
-            document.getElementById("title").innerText = "Toque para ouvir!";
-        });
+                other.classList.remove('bg-active');
+                this.currentBgLayer = this.currentBgLayer === 1 ? 2 : 1;
+            }, 100);
+        };
+        change();
+        setInterval(change, 40000);
     },
 
     addHistory(name) {
         const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        if(this.history.length > 0 && this.history[0].name === name) return; 
+
         this.history.unshift({ name, time });
-        if(this.history.length > 12) this.history.pop();
+        if (this.history.length > 10) this.history.pop();
         localStorage.setItem('4mfm_history', JSON.stringify(this.history));
         this.renderHistory();
     },
 
     renderHistory() {
         const container = document.getElementById("history-container");
-        if(!container) return;
         container.innerHTML = this.history.map(m => `
-            <div class="history-item p-4 border border-white/5">
+            <div class="history-item p-4 border border-white/5 mb-3">
                 <p class="font-black text-[11px] uppercase truncate text-white/90">${m.name}</p>
                 <div class="flex justify-between items-center opacity-40 mt-1">
-                    <span class="text-[8px] font-bold tracking-widest">4MFM TRACK</span>
+                    <span class="text-[8px] font-bold tracking-widest text-white">4MFM LOG</span>
                     <span class="text-[9px] font-mono">${m.time}</span>
                 </div>
             </div>
         `).join("");
     },
 
-    showScreen(s) {
-        document.querySelectorAll(".screen").forEach(e => {
-            e.classList.add("hidden-screen");
-            e.classList.remove("active-screen");
-        });
-        const target = document.getElementById("screen-"+s);
-        target.classList.remove("hidden-screen");
-        target.classList.add("active-screen");
+    simulateListeners() {
+        const el = document.getElementById("listener-count");
+        let count = 120;
+        setInterval(() => {
+            count += Math.floor(Math.random() * 9) - 4; 
+            el.innerText = Math.max(85, count);
+        }, 6000);
     },
 
-    requestSong() { window.open(FORM_LINK, '_blank'); }
-};
+    startClock() {
+        setInterval(() => {
+            document.getElementById("clock").innerText = new Date().toLocaleTimeString('pt-BR');
+        }, 1000);
+    },
 
-// Relógio
-setInterval(() => {
-    const el = document.getElementById("clock");
-    if(el) el.innerText = new Date().toLocaleTimeString('pt-BR');
-}, 1000);
+    showScreen(s) {
+        document.querySelectorAll(".screen").forEach(e => e.classList.replace("active-screen", "hidden-screen"));
+        document.getElementById("screen-"+s).classList.replace("hidden-screen", "active-screen");
+    },
+
+    requestSong() { window.open(CONFIG.FORM_URL, '_blank'); }
+};
