@@ -3,22 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>4MFM Rádio
-</title>
+    <title>4MFM Rádio</title>
     
-    <link rel="icon" type="image/png" href="icon/favicon.icon">
+    <link rel="icon" type="icon/icon" href="icon/favicon.icon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-[#0a0a0a] text-white overflow-hidden select-none">
+<body class="bg-black text-white overflow-hidden select-none">
 
     <div id="bg-wrapper">
         <div id="bg-layer-1" class="bg-layer"></div>
         <div id="bg-layer-2" class="bg-layer"></div>
     </div>
 
-    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/40">
+    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/50">
         <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2">4M<span class="text-green-500">FM</span></h1>
         <p class="text-green-500 tracking-[0.5em] font-bold text-xs mb-10">QUALIDADE MÁXIMA</p>
         <button onclick="app.init()" class="bg-white text-black font-black px-12 py-5 rounded-full text-xl hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-2xl">
@@ -31,7 +30,7 @@
         <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative">
             
             <header class="w-full flex justify-between items-center mb-12 absolute top-6 left-0 px-6 md:static">
-                <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full font-black text-[10px] transition-colors duration-500">
+                <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full font-black text-[10px] transition-colors duration-700">
                     <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> 
                     <span id="badge-text">NO AR</span>
                 </div>
@@ -46,7 +45,7 @@
             </div>
 
             <div class="text-center md:text-left w-full">
-                <h2 id="title" class="text-3xl md:text-6xl font-black mb-8 leading-tight tracking-tight px-4 md:px-0">Sintonizando...</h2>
+                <h2 id="title" class="text-3xl md:text-6xl font-black mb-8 leading-tight tracking-tight px-4 md:px-0">Carregando...</h2>
                 <button onclick="app.requestSong()" class="mx-auto md:mx-0 bg-green-500 text-black px-10 py-4 rounded-2xl font-black hover:bg-white transition-all flex items-center gap-3 shadow-xl transform active:scale-95">
                     <span>🎵</span> PEÇA SUA MÚSICA
                 </button>
@@ -54,12 +53,12 @@
         </div>
 
         <aside class="history-panel w-full md:w-[400px] glass border-l border-white/10 p-6 md:p-10 overflow-y-auto">
-            <h3 class="text-xl font-black mb-6 italic tracking-tighter border-b border-green-500/30 pb-4">RECENTES</h3>
+            <h3 class="text-xl font-black mb-6 italic tracking-tighter border-b border-green-500/30 pb-4 text-green-500">RECENTES</h3>
             <div id="history-container" class="space-y-4"></div>
         </aside>
     </section>
 
-    <audio id="audio" preload="auto"></audio>
+    <audio id="audio" preload="auto" playsinline></audio>
     <script src="script.js"></script>
 </body>
 </html>
