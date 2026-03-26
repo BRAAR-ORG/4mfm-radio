@@ -5,34 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>4MFM Rádio</title>
     
-    <link rel="icon" type="icon/icon" href="icon/favicon.icon">
+    <link rel="icon" type="image/x-icon" href="icon/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-black text-white overflow-hidden select-none">
+<body class="bg-black text-white overflow-hidden select-none font-['Inter']">
 
     <div id="bg-wrapper">
         <div id="bg-layer-1" class="bg-layer"></div>
         <div id="bg-layer-2" class="bg-layer"></div>
     </div>
 
-    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/50">
+    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/60 z-10">
         <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2">4M<span class="text-green-500">FM</span></h1>
         <p class="text-green-500 tracking-[0.5em] font-bold text-xs mb-10">QUALIDADE MÁXIMA</p>
-        <button onclick="app.init()" class="bg-white text-black font-black px-12 py-5 rounded-full text-xl hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-2xl">
+        <button onclick="app.init()" class="bg-white text-black font-black px-12 py-5 rounded-full text-xl hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
             SINTONIZAR
         </button>
         <p id="status" class="mt-6 text-[10px] text-zinc-500 uppercase font-mono tracking-widest"></p>
     </section>
 
-    <section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen">
+    <section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen z-10">
         <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative">
             
             <header class="w-full flex justify-between items-center mb-12 absolute top-6 left-0 px-6 md:static">
-                <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full font-black text-[10px] transition-colors duration-700">
-                    <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> 
-                    <span id="badge-text">NO AR</span>
+                <div class="flex gap-3">
+                    <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-1.5 rounded-full font-black text-[10px] transition-colors duration-700">
+                        <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> 
+                        <span id="badge-text">NO AR</span>
+                    </div>
+                    <div class="glass px-4 py-1.5 rounded-full font-mono text-[10px] flex items-center gap-2 text-zinc-300">
+                        <span class="text-green-500">●</span> <span id="listener-count">120</span> OUVINTES
+                    </div>
                 </div>
                 <div id="clock" class="text-white/50 font-mono text-sm tracking-widest">00:00:00</div>
             </header>
@@ -45,10 +50,14 @@
             </div>
 
             <div class="text-center md:text-left w-full">
-                <h2 id="title" class="text-3xl md:text-6xl font-black mb-8 leading-tight tracking-tight px-4 md:px-0">Carregando...</h2>
-                <button onclick="app.requestSong()" class="mx-auto md:mx-0 bg-green-500 text-black px-10 py-4 rounded-2xl font-black hover:bg-white transition-all flex items-center gap-3 shadow-xl transform active:scale-95">
-                    <span>🎵</span> PEÇA SUA MÚSICA
-                </button>
+                <p id="artist-name" class="text-green-500 font-bold tracking-widest text-xs uppercase mb-2 opacity-80">4MFM HITS</p>
+                <h2 id="title" class="text-3xl md:text-6xl font-black mb-8 leading-tight tracking-tight px-4 md:px-0 text-white">Carregando...</h2>
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <button onclick="app.requestSong()" class="bg-green-500 text-black px-8 py-4 rounded-2xl font-black hover:bg-white transition-all flex items-center gap-3 shadow-xl transform active:scale-95">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
+                        PEÇA SUA MÚSICA
+                    </button>
+                </div>
             </div>
         </div>
 
