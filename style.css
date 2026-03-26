@@ -1,36 +1,36 @@
-/* Transições de Tela */
+/* Configurações de Tela */
 .screen { 
     position: absolute; 
     inset: 0; 
     transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
     z-index: 10; 
 }
-.hidden-screen { opacity: 0; pointer-events: none; transform: scale(1.05); }
-.active-screen { opacity: 1; pointer-events: all; transform: scale(1); }
+.hidden-screen { opacity: 0; pointer-events: none; transform: translateY(20px); }
+.active-screen { opacity: 1; pointer-events: all; transform: translateY(0); }
 
-/* Glassmorphism */
+/* Efeito Vidro */
 .glass { 
-    background: rgba(0, 0, 0, 0.5); 
-    backdrop-filter: blur(25px); 
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.08); 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(30px); 
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1); 
 }
 
-/* Background System */
+/* Background Dinâmico */
 #bg-wrapper { position: fixed; inset: 0; z-index: -1; background: #000; }
 .bg-layer { 
     position: absolute; inset: 0; width: 100%; height: 100%; 
     object-fit: cover; opacity: 0; transition: opacity 3s ease-in-out; 
-    filter: brightness(0.25) blur(3px); transform: scale(1.1);
+    filter: brightness(0.3) blur(2px); transform: scale(1.1);
 }
-.bg-active { opacity: 1; animation: kenburns 45s infinite alternate linear; }
+.bg-active { opacity: 1; animation: kenburns 50s infinite alternate linear; }
 
 @keyframes kenburns {
     from { transform: scale(1.1) rotate(0.01deg); }
-    to { transform: scale(1.25) translate(-1%, -1%) rotate(0.01deg); }
+    to { transform: scale(1.3) translate(-2%, -1%) rotate(0.01deg); }
 }
 
-/* Visualizer Bars */
+/* Visualizer (Barras de Áudio) */
 .bar { width: 6px; background: #22c55e; height: 6px; border-radius: 3px; transition: 0.3s; }
 .playing .bar { animation: bounce 0.6s infinite alternate ease-in-out; }
 .bar:nth-child(1) { animation-delay: 0.1s; }
@@ -41,7 +41,7 @@
 
 @keyframes bounce { 
     from { height: 6px; box-shadow: 0 0 0px #22c55e; } 
-    to { height: 40px; box-shadow: 0 0 15px #22c55e; } 
+    to { height: 40px; box-shadow: 0 0 20px rgba(34, 197, 94, 0.6); } 
 }
 
 .visual-container { width: 280px; height: 280px; }
@@ -51,9 +51,17 @@
 .history-item {
     animation: slideIn 0.5s ease-out forwards;
     background: rgba(255,255,255,0.03);
+    border-radius: 15px;
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(30px); }
+    from { opacity: 0; transform: translateX(20px); }
     to { opacity: 1; transform: translateX(0); }
+}
+
+/* Ajustes Mobile */
+@media (max-width: 768px) {
+    #screen-player { flex-direction: column; overflow-y: auto; }
+    .main-content { min-height: 100vh; padding-top: 80px; }
+    .history-panel { border-left: none; border-top: 1px solid rgba(255,255,255,0.1); }
 }
