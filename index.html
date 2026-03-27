@@ -5,67 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>4MFM RÁDIO</title>
+    <title>4MFM RADIO</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-black text-white overflow-x-hidden md:overflow-hidden select-none font-['Inter']">
+<body class="bg-black text-white overflow-hidden select-none font-['Inter']">
 
     <div id="bg-wrapper">
         <div id="bg-layer-1" class="bg-layer"></div>
         <div id="bg-layer-2" class="bg-layer"></div>
     </div>
 
-    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/60 z-10">
-        <h1 class="text-6xl md:text-9xl font-black tracking-tighter mb-2">4M<span class="text-green-500">FM</span></h1>
-        <p class="text-green-500 tracking-[0.3em] md:tracking-[0.5em] font-bold text-[10px] md:text-xs mb-10 uppercase">Qualidade Máxima</p>
-        <button onclick="app.init()" class="w-full max-w-xs md:w-auto bg-white text-black font-black px-12 py-5 rounded-2xl md:rounded-full text-lg md:text-xl hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-xl">
+    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/70 z-50">
+        <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2 italic">4M<span class="text-green-500">FM</span></h1>
+        <p class="text-green-500 tracking-[0.4em] font-bold text-[10px] md:text-xs mb-12 uppercase">O Som do Futuro Agora</p>
+        
+        <button onclick="app.init()" class="w-full max-w-xs bg-white text-black font-black px-12 py-5 rounded-2xl text-lg hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
             SINTONIZAR
         </button>
-        <p id="status" class="mt-8 text-[9px] text-zinc-500 uppercase font-mono tracking-widest"></p>
+        
+        <p id="status" class="mt-8 text-[9px] text-zinc-500 uppercase font-mono tracking-[0.2em]"></p>
     </section>
 
-    <section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen z-10 overflow-y-auto md:overflow-hidden">
+    <section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen z-10">
         
-        <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative min-h-screen md:min-h-0">
+        <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative">
             
-            <header class="w-full flex justify-between items-center mb-8 md:mb-12 absolute top-6 left-0 px-6 md:static">
-                <div class="flex gap-2 md:gap-3">
-                    <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-3 md:px-4 py-1.5 rounded-full font-black text-[9px] md:text-[10px]">
-                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-ping"></span> 
-                        <span id="badge-text">NO AR</span>
+            <header class="w-full flex justify-between items-center mb-8 absolute top-8 left-0 px-6 md:static">
+                <div class="flex gap-2">
+                    <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-2 rounded-full font-black text-[10px] tracking-wider shadow-lg">
+                        <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> 
+                        <span id="badge-text">AO VIVO</span>
                     </div>
-                    <div class="glass px-3 md:px-4 py-1.5 rounded-full font-mono text-[9px] md:text-[10px] flex items-center gap-2 text-zinc-300">
-                        <span id="listener-count">120</span> <span class="hidden md:inline">OUVINTES</span>
+                    <div class="glass px-4 py-2 rounded-full font-mono text-[10px] flex items-center gap-2 text-zinc-300">
+                        <span id="listener-count">--</span> <span>OUVINTES</span>
                     </div>
                 </div>
-                <div id="clock" class="text-white/50 font-mono text-xs md:text-sm tracking-widest">00:00:00</div>
+                <div id="clock" class="text-white/40 font-mono text-xs tracking-[0.2em] hidden md:block">00:00:00</div>
             </header>
 
-            <div class="visual-container glass rounded-[30px] md:rounded-[60px] flex flex-col items-center justify-center border border-white/10 shadow-2xl relative mb-8 md:mb-10 overflow-hidden shrink-0">
-                <img src="icon/logo-4mfm.png" alt="4MFM Logo" class="w-24 md:w-56 mb-6 md:mb-8 drop-shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-                <div id="visualizer" class="flex items-end gap-1.5 md:gap-3 h-8 md:h-12">
-                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="visual-container glass rounded-[50px] md:rounded-[80px] flex flex-col items-center justify-center border border-white/10 shadow-2xl relative mb-10 overflow-hidden shrink-0">
+                <img src="icon/logo-4mfm.png" alt="4MFM" class="w-28 md:w-60 mb-8 drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]">
+                <div id="visualizer" class="flex items-end gap-2 md:gap-4 h-10 md:h-16">
+                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
                 </div>
             </div>
 
-            <div class="text-center md:text-left w-full">
-                <p id="artist-name" class="text-green-500 font-bold tracking-widest text-[10px] md:text-xs uppercase mb-1 md:mb-2 opacity-80">Sintonizando...</p>
-                <h2 id="title" class="text-2xl md:text-6xl font-black mb-6 md:mb-8 leading-tight tracking-tight px-2 md:px-0 text-white break-words">Aguarde...</h2>
-                <div class="flex justify-center md:justify-start">
-                    <button onclick="app.requestSong()" class="w-full max-w-xs md:w-auto bg-green-500 text-black px-6 py-4 rounded-xl font-black text-sm md:text-base hover:bg-white transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm0-5H4V9h11v4zm5 5h-4V9h4v9z"/></svg>
-                        PEÇA SUA MÚSICA
+            <div class="text-center md:text-left w-full max-w-2xl">
+                <p id="artist-name" class="text-green-500 font-bold tracking-[0.3em] text-[11px] uppercase mb-3 opacity-90">Carregando...</p>
+                <h2 id="title" class="text-4xl md:text-7xl font-black mb-10 leading-[1.1] tracking-tighter text-white break-words">Sintonizando...</h2>
+                
+                <div class="flex flex-col md:flex-row gap-4">
+                    <button onclick="app.requestSong()" class="bg-green-600 text-black px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all active:scale-95 shadow-xl">
+                        Pedir Música
                     </button>
                 </div>
             </div>
         </div>
 
-        <aside class="history-panel w-full md:w-[380px] lg:w-[450px] glass md:border-l border-white/10 p-6 md:p-10 pb-20 md:pb-10">
-            <h3 class="text-lg md:text-xl font-black mb-6 italic tracking-tighter border-b border-green-500/30 pb-4 text-green-500 uppercase">Recentes</h3>
-            <div id="history-container" class="grid grid-cols-1 gap-3">
+        <aside class="history-panel w-full md:w-[450px] glass md:border-l border-white/10 p-8 flex flex-col h-1/2 md:h-full">
+            <h3 class="text-sm font-black mb-8 italic tracking-[0.2em] border-b border-green-500/20 pb-4 text-green-500 uppercase flex justify-between items-center">
+                Últimas Tocadas <span>(10)</span>
+            </h3>
+            <div id="history-container" class="flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
                 </div>
         </aside>
     </section>
