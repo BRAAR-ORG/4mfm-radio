@@ -1,242 +1,188 @@
 const CONFIG = {
-    API_MUSIC: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
-    API_ANN: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
-    IMAGES: Array.from({length: 56}, (_, i) => `./imgs/img${String(i + 1).padStart(3, '0')}.png`),
-    AVG_TRACK_MS: 180000, // Cada música ou locução ocupa um bloco de 3 min na linha do tempo
-    LOGO: "icon/logo-4mfm.png",
-    FORM_URL: "https://forms.gle/QjCpUrdZRgqE81mA6"
+    ENDPOINTS: {
+        MUSIC: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
+        LOCUTION: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura"
+    },
+    // A locutora entrará a cada 8 blocos (7 músicas + 1 locutora)
+    LOCUTION_INTERVAL: 8, 
+    BG_INTERVAL: 30000
 };
 
-const app = {
-    audio: document.getElementById("audio"),
-    playlist: [],
-    locutores: [],
-    history: JSON.parse(localStorage.getItem('4mfm_history')) || [],
-    currentBgLayer: 1,
-    // Trava para impedir que a mesma locução repita no mesmo bloco
-    hasPlayedLocutionInThisBlock: false,
-    lastBlockIndex: -1,
+class RadioApp {
+    constructor() {
+        this.nodes = {
+            audio: document.getElementById("main-audio"),
+            status: document.getElementById("status-label"),
+            title: document.getElementById("track-title"),
+            artist: document.getElementById("track-artist"),
+            history: document.getElementById("history-list"),
+            visualizer: document.getElementById("visualizer-bars"),
+            btnStart: document.getElementById("btn-start")
+        };
 
-    async init() {
-        document.getElementById("status").innerText = "Conectando ao fluxo global...";
+        this.state = {
+            playlist: [],
+            locutions: [],
+            history: JSON.parse(localStorage.getItem('4mfm_history')) || [],
+            currentLayer: 1,
+            isLocutionMode: false,
+            forcedMusicMode: false // Trava para não repetir locutora
+        };
+
+        this.init();
+    }
+
+    init() {
+        this.nodes.btnStart.onclick = () => this.boot();
+        document.getElementById('btn-request').onclick = () => window.open("https://forms.gle/QjCpUrdZRgqE81mA6", '_blank');
         
-        // Solicita permissão de notificação nativa
-        if ("Notification" in window && Notification.permission !== "granted") {
-            Notification.requestPermission();
-        }
+        // Quando a música ou locutora acaba
+        this.nodes.audio.onended = () => {
+            if (this.state.isLocutionMode) {
+                // Se era a locutora, agora obrigamos a voltar para a música
+                this.state.forcedMusicMode = true;
+                console.log("Locutora finalizada. Voltando para as músicas...");
+            }
+            this.syncStream();
+        };
 
+        this.nodes.audio.onerror = () => setTimeout(() => this.syncStream(), 2000);
+    }
+
+    async boot() {
+        this.nodes.status.innerText = "Sincronizando com o satélite...";
         try {
-            await this.loadData();
+            await this.loadAssets();
+            this.buildVisualizer();
             this.showScreen("player");
-            this.renderHistory();
-            this.startBackground();
             this.startClock();
-            this.simulateListeners();
-            this.syncAndPlay(); 
-            this.setupEvents();
+            this.startBackgrounds();
+            this.syncStream();
         } catch (e) {
-            document.getElementById("status").innerText = "Erro de conexão. Tente novamente.";
-            console.error(e);
+            this.nodes.status.innerText = "Erro de conexão.";
         }
-    },
+    }
 
-    async loadData() {
-        const [resM, resL] = await Promise.all([
-            fetch(CONFIG.API_MUSIC).then(r => r.json()),
-            fetch(CONFIG.API_ANN).then(r => r.json())
+    async loadAssets() {
+        const [m, l] = await Promise.all([
+            fetch(CONFIG.ENDPOINTS.MUSIC).then(r => r.json()),
+            fetch(CONFIG.ENDPOINTS.LOCUTION).then(r => r.json())
         ]);
-        
-        // Garante ordem idêntica para todos os ouvintes no mundo
-        this.playlist = resM.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
-        this.locutores = resL.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
-    },
+        this.state.playlist = m.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
+        this.state.locutions = l.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
+    }
 
-    getGlobalLiveState() {
+    syncStream() {
         const now = Date.now();
-        const blockIndex = Math.floor(now / CONFIG.AVG_TRACK_MS);
-        const offsetInSeconds = (now % CONFIG.AVG_TRACK_MS) / 1000;
+        // Usamos um tempo de bloco menor (ex: 2 min) para rotatividade
+        const blockTime = 120000; 
+        let blockIndex = Math.floor(now / blockTime);
         
-        // Reseta a trava se mudarmos de bloco de tempo
-        if (blockIndex !== this.lastBlockIndex) {
-            this.hasPlayedLocutionInThisBlock = false;
-            this.lastBlockIndex = blockIndex;
+        // Decisão: É hora da locutora? 
+        // Se o bloco for divisível pelo intervalo E não acabamos de tocar uma locutora
+        let isKiara = (blockIndex % CONFIG.LOCUTION_INTERVAL === 0) && !this.state.forcedMusicMode;
+        
+        this.state.isLocutionMode = isKiara;
+
+        let track;
+        if (isKiara) {
+            // Pega a locutora (pode ser a ID1 ou sequencial)
+            track = this.state.locutions[blockIndex % this.state.locutions.length];
+        } else {
+            // Pega música
+            track = this.state.playlist[blockIndex % this.state.playlist.length];
+            this.state.forcedMusicMode = false; // Reseta a trava ao tocar música
         }
 
-        // Regra: A cada 5 blocos, entra a Kiara
-        const isLocutionBlock = blockIndex % 5 === 0;
+        const rawName = track.name.replace(".mp3", "").replace(/[._]+/g, " ");
+        const [artist, title] = rawName.includes("-") ? rawName.split("-") : ["4MFM Hits", rawName];
+
+        this.nodes.audio.src = track.browser_download_url;
+        this.nodes.audio.load();
         
-        // Se for bloco da Kiara e ainda não tocamos ela, toca a locutora. Caso contrário, música.
-        const useLocution = isLocutionBlock && !this.hasPlayedLocutionInThisBlock;
-        const currentList = useLocution ? this.locutores : this.playlist;
-        const itemIndex = blockIndex % currentList.length;
-
-        return {
-            item: currentList[itemIndex],
-            isKiara: useLocution,
-            seekTime: offsetInSeconds
-        };
-    },
-
-    async syncAndPlay() {
-        const state = this.getGlobalLiveState();
-        const item = state.item;
-        
-        const rawName = item.name.replace(".mp3", "").replace(/[._]+/g, " ");
-        const [artist, track] = rawName.includes("-") ? rawName.split("-") : ["4MFM Hits", rawName];
-
-        this.audio.src = item.browser_download_url;
-        
-        // Lógica de Sincronia: Não começa do zero ao atualizar/abrir
-        this.audio.onloadedmetadata = () => {
-            // A locutora sempre começa do zero ao entrar no bloco, músicas seguem o relógio global
-            const startTime = state.isKiara ? 0 : state.seekTime % this.audio.duration;
-            this.audio.currentTime = startTime;
-        };
-
-        try {
-            await this.audio.play();
-            this.updateUI(artist.trim(), track.trim(), state.isKiara);
+        this.nodes.audio.onloadedmetadata = () => {
+            // Sincronia de tempo: Locutora sempre começa do zero (ID1)
+            // Música começa de onde o relógio global estiver
+            if (isKiara) {
+                this.nodes.audio.currentTime = 0;
+            } else {
+                const seekTime = Math.floor((now % blockTime) / 1000) % Math.floor(this.nodes.audio.duration);
+                this.nodes.audio.currentTime = seekTime;
+            }
             
-            if (!state.isKiara) {
-                this.addHistory(rawName);
-                this.pushNotify(track.trim(), artist.trim());
-            }
-        } catch (e) {
-            document.getElementById("title").innerText = "TOQUE PARA OUVIR";
-        }
-    },
-
-    pushNotify(title, artist) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("4MFM RADIO 📻", {
-                body: `Tocando agora: ${title} - ${artist}`,
-                icon: CONFIG.LOGO,
-                silent: true // Não interrompe com som de sistema
+            this.nodes.audio.play().catch(() => {
+                this.nodes.title.innerText = "CLIQUE PARA OUVIR";
             });
-        }
-    },
 
-    addHistory(name) {
-        if(this.history[0]?.name === name) return;
-        
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        
-        this.history.unshift({ name, time: timeStr });
-        
-        // Mantém apenas 10 músicas, limpando as antigas uma a uma
-        while (this.history.length > 10) {
-            this.history.pop();
-        }
-        
-        localStorage.setItem('4mfm_history', JSON.stringify(this.history));
-        this.renderHistory();
-    },
-
-    setupEvents() {
-        this.audio.onended = () => {
-            // Se o áudio que acabou foi a Kiara, travamos para não repetir no mesmo bloco
-            if (this.getGlobalLiveState().isKiara) {
-                this.hasPlayedLocutionInThisBlock = true;
-            }
-            this.syncAndPlay();
+            this.updateUI(artist.trim(), title.trim(), isKiara);
+            if (!isKiara) this.addToHistory(rawName);
         };
+    }
 
-        this.audio.onplay = () => {
-            document.getElementById("visualizer").classList.add("playing");
-            this.updateMediaSessionStatus("playing");
-        };
-
-        this.audio.onpause = () => {
-            document.getElementById("visualizer").classList.remove("playing");
-            this.updateMediaSessionStatus("paused");
-        };
-
-        this.audio.onerror = () => setTimeout(() => this.syncAndPlay(), 3000);
-    },
-
-    updateUI(artist, track, isKiara) {
-        document.getElementById("artist-name").innerText = isKiara ? "KIARA • LOCUÇÃO" : artist;
-        document.getElementById("title").innerText = isKiara ? "COMUNICADO DA REDE" : track;
+    updateUI(artist, title, isKiara) {
+        this.nodes.artist.innerText = isKiara ? "KIARA • LOCUÇÃO" : artist;
+        this.nodes.title.innerText = isKiara ? "COMUNICADO DA REDE" : title;
         
         const badge = document.getElementById('badge-live');
-        const text = document.getElementById('badge-text');
-        
-        if (isKiara) {
-            badge.classList.replace("bg-red-600", "bg-purple-600");
-            text.innerText = "KIARA NO AR";
-        } else {
-            badge.classList.replace("bg-purple-600", "bg-red-600");
-            text.innerText = "AO VIVO";
-        }
+        badge.className = isKiara ? "badge badge-purple" : "badge badge-red";
+        document.getElementById('badge-text').innerText = isKiara ? "KIARA NO AR" : "AO VIVO";
+        document.querySelector('.player-art-container').classList.add('playing');
+    }
 
-        // Atualiza MediaSession (Controle de tela de bloqueio)
-        if ("mediaSession" in navigator) {
-            navigator.mediaSession.metadata = new MediaMetadata({
-                title: track,
-                artist: artist,
-                album: "4MFM RADIO",
-                artwork: [{ src: CONFIG.LOGO, sizes: '512x512', type: 'image/png' }]
-            });
-        }
-    },
+    addToHistory(name) {
+        if (this.state.history[0]?.name === name) return;
+        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        this.state.history.unshift({ name, time });
+        this.state.history = this.state.history.slice(0, 10);
+        localStorage.setItem('4mfm_history', JSON.stringify(this.state.history));
+        this.renderHistory();
+    }
 
     renderHistory() {
-        const container = document.getElementById("history-container");
-        container.innerHTML = this.history.map(item => `
-            <div class="history-item flex flex-col gap-1">
-                <p class="text-[11px] font-black uppercase truncate text-white/90 tracking-tight">${item.name}</p>
-                <div class="flex justify-between items-center opacity-40">
-                    <span class="text-[8px] font-bold tracking-widest uppercase text-green-500">4MFM Registros</span>
-                    <span class="text-[9px] font-mono">${item.time}</span>
+        this.nodes.history.innerHTML = this.state.history.map(item => `
+            <div class="history-item">
+                <p class="text-[11px] font-black uppercase truncate text-white/90">${item.name}</p>
+                <div class="flex justify-between items-center opacity-40 text-[9px] mt-1">
+                    <span class="text-green-500 font-bold">4MFM LOG</span>
+                    <span>${item.time}</span>
                 </div>
             </div>
-        `).join("");
-    },
+        `).join('');
+    }
 
-    startBackground() {
-        const changeBg = () => {
-            const l1 = document.getElementById(`bg-layer-1`);
-            const l2 = document.getElementById(`bg-layer-2`);
-            const currentLayer = this.currentBgLayer === 1 ? l1 : l2;
-            const otherLayer = this.currentBgLayer === 1 ? l2 : l1;
+    buildVisualizer() {
+        this.nodes.visualizer.innerHTML = Array(12).fill('<div class="bar"></div>').join('');
+    }
 
-            const randomImg = CONFIG.IMAGES[Math.floor(Math.random() * CONFIG.IMAGES.length)];
-            currentLayer.innerHTML = `<img src="${randomImg}" class="w-full h-full object-cover">`;
-
-            setTimeout(() => {
-                currentLayer.classList.add('bg-active');
-                otherLayer.classList.remove('bg-active');
-                this.currentBgLayer = this.currentBgLayer === 1 ? 2 : 1;
-            }, 100);
+    startBackgrounds() {
+        const layers = [document.getElementById('bg-layer-1'), document.getElementById('bg-layer-2')];
+        const update = () => {
+            const imgIdx = Math.floor(Math.random() * 56) + 1;
+            const nextLayer = layers[this.state.currentLayer % 2];
+            const prevLayer = layers[(this.state.currentLayer + 1) % 2];
+            nextLayer.style.backgroundImage = `url('./imgs/img${String(imgIdx).padStart(3, '0')}.png')`;
+            nextLayer.classList.add('active');
+            prevLayer.classList.remove('active');
+            this.state.currentLayer++;
         };
-        changeBg();
-        setInterval(changeBg, 30000); // Troca a cada 30 segundos
-    },
+        update();
+        setInterval(update, CONFIG.BG_INTERVAL);
+    }
 
     startClock() {
         setInterval(() => {
-            document.getElementById("clock").innerText = new Date().toLocaleTimeString('pt-BR');
+            document.getElementById("digital-clock").innerText = new Date().toLocaleTimeString('pt-BR');
         }, 1000);
-    },
-
-    simulateListeners() {
-        const el = document.getElementById("listener-count");
-        let count = 118;
         setInterval(() => {
-            count += Math.floor(Math.random() * 7) - 3;
-            el.innerText = Math.max(90, count);
-        }, 6000);
-    },
+            const count = Math.floor(Math.random() * 20) + 130;
+            document.getElementById("listener-count").innerText = count;
+        }, 5000);
+    }
 
-    updateMediaSessionStatus(state) {
-        if ("mediaSession" in navigator) navigator.mediaSession.playbackState = state;
-    },
+    showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.replace('screen-active', 'screen-hidden'));
+        document.getElementById(`screen-${id}`).classList.replace('screen-hidden', 'screen-active');
+    }
+}
 
-    showScreen(s) {
-        document.querySelectorAll(".screen").forEach(e => e.classList.replace("active-screen", "hidden-screen"));
-        document.getElementById("screen-"+s).classList.replace("hidden-screen", "active-screen");
-    },
-
-    requestSong() { window.open(CONFIG.FORM_URL, '_blank'); }
-};
+window.onload = () => new RadioApp();
