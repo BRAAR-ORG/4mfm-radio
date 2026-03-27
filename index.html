@@ -8,73 +8,84 @@
     <title>4MFM RADIO</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-black text-white overflow-hidden select-none font-['Inter']">
 
-    <div id="bg-wrapper">
-        <div id="bg-layer-1" class="bg-layer"></div>
+    <div id="bg-wrapper" aria-hidden="true">
+        <div id="bg-layer-1" class="bg-layer active"></div>
         <div id="bg-layer-2" class="bg-layer"></div>
+        <div class="bg-overlay"></div>
     </div>
 
-    <section id="screen-home" class="screen active-screen flex flex-col items-center justify-center text-center p-6 bg-black/70 z-50">
-        <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2 italic">4M<span class="text-green-500">FM</span></h1>
-        <p class="text-green-500 tracking-[0.4em] font-bold text-[10px] md:text-xs mb-12 uppercase">O Som do Futuro Agora</p>
-        
-        <button onclick="app.init()" class="w-full max-w-xs bg-white text-black font-black px-12 py-5 rounded-2xl text-lg hover:bg-green-500 hover:text-white transition-all transform active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
-            SINTONIZAR
-        </button>
-        
-        <p id="status" class="mt-8 text-[9px] text-zinc-500 uppercase font-mono tracking-[0.2em]"></p>
-    </section>
-
-    <section id="screen-player" class="screen hidden-screen flex flex-col md:flex-row h-screen z-10">
-        
-        <div class="main-content flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start relative">
+    <main id="screen-home" class="screen screen-active flex flex-col items-center justify-center p-6 text-center">
+        <div class="hero-content">
+            <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2 italic">
+                4M<span class="text-green-500">FM</span>
+            </h1>
+            <p class="text-green-500 tracking-[0.5em] font-bold text-[10px] md:text-xs mb-12 uppercase opacity-80">
+                O Som do Futuro Agora
+            </p>
             
-            <header class="w-full flex justify-between items-center mb-8 absolute top-8 left-0 px-6 md:static">
-                <div class="flex gap-2">
-                    <div id="badge-live" class="flex items-center gap-2 bg-red-600 px-4 py-2 rounded-full font-black text-[10px] tracking-wider shadow-lg">
-                        <span class="w-2 h-2 bg-white rounded-full animate-ping"></span> 
+            <button id="btn-start" class="btn-primary group">
+                <span class="relative z-10">SINTONIZAR</span>
+                <div class="btn-glow"></div>
+            </button>
+            
+            <p id="status-label" class="mt-8 text-[9px] text-zinc-500 uppercase font-mono tracking-[0.2em] h-4">
+                Estação pronta
+            </p>
+        </div>
+    </main>
+
+    <section id="screen-player" class="screen screen-hidden flex flex-col md:flex-row h-screen">
+        
+        <article class="relative flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start">
+            <header class="absolute top-8 left-0 w-full px-6 md:px-16 flex justify-between items-center">
+                <div class="flex gap-3">
+                    <div id="badge-live" class="badge badge-red">
+                        <span class="ping-dot"></span> 
                         <span id="badge-text">AO VIVO</span>
                     </div>
-                    <div class="glass px-4 py-2 rounded-full font-mono text-[10px] flex items-center gap-2 text-zinc-300">
-                        <span id="listener-count">--</span> <span>OUVINTES</span>
+                    <div class="badge badge-glass font-mono">
+                        <span id="listener-count" class="text-white">--</span> 
+                        <span class="ml-1 opacity-50 uppercase">Ouvintes</span>
                     </div>
                 </div>
-                <div id="clock" class="text-white/40 font-mono text-xs tracking-[0.2em] hidden md:block">00:00:00</div>
+                <div id="digital-clock" class="hidden md:block font-mono text-zinc-500 text-sm tracking-widest">00:00:00</div>
             </header>
 
-            <div class="visual-container glass rounded-[50px] md:rounded-[80px] flex flex-col items-center justify-center border border-white/10 shadow-2xl relative mb-10 overflow-hidden shrink-0">
-                <img src="icon/logo-4mfm.png" alt="4MFM" class="w-28 md:w-60 mb-8 drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-                <div id="visualizer" class="flex items-end gap-2 md:gap-4 h-10 md:h-16">
-                    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="main-player-ui flex flex-col items-center md:items-start w-full">
+                <div class="player-art-container group">
+                    <img src="icon/logo-4mfm.png" alt="4MFM" class="player-logo">
+                    <div id="visualizer-bars" class="visualizer"></div>
+                </div>
+
+                <div class="track-info mt-10 text-center md:text-left">
+                    <span id="track-artist" class="block text-green-500 font-bold tracking-[0.4em] text-xs uppercase mb-3">Sincronizando...</span>
+                    <h2 id="track-title" class="text-4xl md:text-7xl font-black leading-tight tracking-tighter mb-8 max-w-3xl">Carregando Fluxo</h2>
+                    
+                    <div class="controls-area">
+                        <button id="btn-request" class="btn-secondary">PEDIR MÚSICA</button>
+                    </div>
                 </div>
             </div>
+        </article>
 
-            <div class="text-center md:text-left w-full max-w-2xl">
-                <p id="artist-name" class="text-green-500 font-bold tracking-[0.3em] text-[11px] uppercase mb-3 opacity-90">Carregando...</p>
-                <h2 id="title" class="text-4xl md:text-7xl font-black mb-10 leading-[1.1] tracking-tighter text-white break-words">Sintonizando...</h2>
-                
-                <div class="flex flex-col md:flex-row gap-4">
-                    <button onclick="app.requestSong()" class="bg-green-600 text-black px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white transition-all active:scale-95 shadow-xl">
-                        Pedir Música
-                    </button>
-                </div>
+        <aside class="history-sidebar glass-panel">
+            <div class="p-8 h-full flex flex-col">
+                <h3 class="flex justify-between items-center text-xs font-black tracking-[0.2em] text-green-500 uppercase mb-8 border-b border-white/10 pb-4">
+                    Últimas Tocadas <span>(10)</span>
+                </h3>
+                <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-4"></div>
             </div>
-        </div>
-
-        <aside class="history-panel w-full md:w-[450px] glass md:border-l border-white/10 p-8 flex flex-col h-1/2 md:h-full">
-            <h3 class="text-sm font-black mb-8 italic tracking-[0.2em] border-b border-green-500/20 pb-4 text-green-500 uppercase flex justify-between items-center">
-                Últimas Tocadas <span>(10)</span>
-            </h3>
-            <div id="history-container" class="flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                </div>
         </aside>
     </section>
 
-    <audio id="audio" preload="auto" playsinline></audio>
+    <audio id="main-audio" preload="auto" playsinline></audio>
     <script src="script.js"></script>
 </body>
 </html>
