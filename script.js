@@ -1,188 +1,313 @@
 const CONFIG = {
-    ENDPOINTS: {
-        MUSIC: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
-        LOCUTION: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura"
-    },
-    // A locutora entrará a cada 8 blocos (7 músicas + 1 locutora)
-    LOCUTION_INTERVAL: 8, 
-    BG_INTERVAL: 30000
+    MUSIC_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/sertanejo",
+    ANN_API: "https://api.github.com/repos/BRAAR-ORG/4mfm-radio/releases/tags/locutoura",
+    VIDEOS: Array.from({length: 6}, (_, i) => `vids/video${i + 1}.mp4`),
+    IMAGES: Array.from({length: 56}, (_, i) => `imgs/img${String(i + 1).padStart(3, '0')}.png`),
+    SAVE_KEY: "4mfm_radio_state",
+    CACHE_KEY: "4mfm_playlist_cache",
+    CACHE_TIME: 15 * 60 * 1000,
+    ANNOUNCER_INTERVAL: 6 * 60 * 1000,
+    IMAGE_DURATION: 7000,
+    LOGO_URL: "icon/logo-4mfm.png",
+    BASE_LISTENERS: 120,
+    CROSSFADE_DURATION: 2000
 };
 
-class RadioApp {
-    constructor() {
-        this.nodes = {
-            audio: document.getElementById("main-audio"),
-            status: document.getElementById("status-label"),
-            title: document.getElementById("track-title"),
-            artist: document.getElementById("track-artist"),
-            history: document.getElementById("history-list"),
-            visualizer: document.getElementById("visualizer-bars"),
-            btnStart: document.getElementById("btn-start")
-        };
+/** ESTADO GLOBAL */
+const state = {
+    mode: "video",
+    videoIdx: 0,
+    imageIdx: 0,
+    musicList: [],
+    announcerList: [],
+    lastAnnouncer: 0,
+    isStarted: false,
+    notificationsEnabled: false,
+    currentListeners: CONFIG.BASE_LISTENERS,
+    engaged: false,
+    sessionStart: Date.now()
+};
 
-        this.state = {
-            playlist: [],
-            locutions: [],
-            history: JSON.parse(localStorage.getItem('4mfm_history')) || [],
-            currentLayer: 1,
-            isLocutionMode: false,
-            forcedMusicMode: false // Trava para não repetir locutora
-        };
+/** ELEMENTOS */
+const el = {
+    video: document.getElementById("bgVideo"),
+    image: document.getElementById("bgImage"),
+    audio: document.getElementById("audio"),
+    track: document.getElementById("track"),
+    artist: document.getElementById("artist"),
+    startBtn: document.getElementById("startBtn"),
+    notice: document.getElementById("notice"),
+    liveClock: document.getElementById("liveClock"),
+    listenerCount: document.getElementById("listenerCount"),
+    visualizer: document.getElementById("visualizer"),
+    shareBtn: document.getElementById("shareBtn")
+};
 
-        this.init();
-    }
+/** ================================
+ * UTILITÁRIOS
+================================= */
 
-    init() {
-        this.nodes.btnStart.onclick = () => this.boot();
-        document.getElementById('btn-request').onclick = () => window.open("https://forms.gle/QjCpUrdZRgqE81mA6", '_blank');
-        
-        // Quando a música ou locutora acaba
-        this.nodes.audio.onended = () => {
-            if (this.state.isLocutionMode) {
-                // Se era a locutora, agora obrigamos a voltar para a música
-                this.state.forcedMusicMode = true;
-                console.log("Locutora finalizada. Voltando para as músicas...");
-            }
-            this.syncStream();
-        };
+const utils = {
 
-        this.nodes.audio.onerror = () => setTimeout(() => this.syncStream(), 2000);
-    }
-
-    async boot() {
-        this.nodes.status.innerText = "Sincronizando com o satélite...";
-        try {
-            await this.loadAssets();
-            this.buildVisualizer();
-            this.showScreen("player");
-            this.startClock();
-            this.startBackgrounds();
-            this.syncStream();
-        } catch (e) {
-            this.nodes.status.innerText = "Erro de conexão.";
+    shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
-    }
+        return arr;
+    },
 
-    async loadAssets() {
-        const [m, l] = await Promise.all([
-            fetch(CONFIG.ENDPOINTS.MUSIC).then(r => r.json()),
-            fetch(CONFIG.ENDPOINTS.LOCUTION).then(r => r.json())
-        ]);
-        this.state.playlist = m.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
-        this.state.locutions = l.assets.filter(a => a.name.endsWith(".mp3")).sort((a,b) => a.name.localeCompare(b.name));
-    }
+    formatName(name) {
+        let clean = name.replace(".mp3", "").replace(/[._]+/g, " ").trim();
+        return clean.split(" - ");
+    },
 
-    syncStream() {
-        const now = Date.now();
-        // Usamos um tempo de bloco menor (ex: 2 min) para rotatividade
-        const blockTime = 120000; 
-        let blockIndex = Math.floor(now / blockTime);
-        
-        // Decisão: É hora da locutora? 
-        // Se o bloco for divisível pelo intervalo E não acabamos de tocar uma locutora
-        let isKiara = (blockIndex % CONFIG.LOCUTION_INTERVAL === 0) && !this.state.forcedMusicMode;
-        
-        this.state.isLocutionMode = isKiara;
+    save() {
+        if (!el.audio.src || el.audio.paused) return;
+        localStorage.setItem(CONFIG.SAVE_KEY, JSON.stringify({
+            src: el.audio.src,
+            time: el.audio.currentTime,
+            title: el.track.innerText,
+            artist: el.artist.innerText,
+            lastAnn: state.lastAnnouncer
+        }));
+    },
 
-        let track;
-        if (isKiara) {
-            // Pega a locutora (pode ser a ID1 ou sequencial)
-            track = this.state.locutions[blockIndex % this.state.locutions.length];
-        } else {
-            // Pega música
-            track = this.state.playlist[blockIndex % this.state.playlist.length];
-            this.state.forcedMusicMode = false; // Reseta a trava ao tocar música
+    async crossfade(newSrc) {
+        const step = 0.05;
+        const delay = CONFIG.CROSSFADE_DURATION * step;
+
+        for (let v = 1; v >= 0; v -= step) {
+            el.audio.volume = v;
+            await new Promise(r => setTimeout(r, delay));
         }
 
-        const rawName = track.name.replace(".mp3", "").replace(/[._]+/g, " ");
-        const [artist, title] = rawName.includes("-") ? rawName.split("-") : ["4MFM Hits", rawName];
+        el.audio.src = newSrc;
+        await el.audio.play();
 
-        this.nodes.audio.src = track.browser_download_url;
-        this.nodes.audio.load();
-        
-        this.nodes.audio.onloadedmetadata = () => {
-            // Sincronia de tempo: Locutora sempre começa do zero (ID1)
-            // Música começa de onde o relógio global estiver
-            if (isKiara) {
-                this.nodes.audio.currentTime = 0;
-            } else {
-                const seekTime = Math.floor((now % blockTime) / 1000) % Math.floor(this.nodes.audio.duration);
-                this.nodes.audio.currentTime = seekTime;
-            }
-            
-            this.nodes.audio.play().catch(() => {
-                this.nodes.title.innerText = "CLIQUE PARA OUVIR";
+        for (let v = 0; v <= 1; v += step) {
+            el.audio.volume = v;
+            await new Promise(r => setTimeout(r, delay));
+        }
+    },
+
+    updateMediaSession(title, artist) {
+        if ("mediaSession" in navigator) {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title,
+                artist,
+                album: "4MFM RADIO",
+                artwork: [{ src: CONFIG.LOGO_URL, sizes: "512x512", type: "image/png" }]
             });
+        }
+    },
 
-            this.updateUI(artist.trim(), title.trim(), isKiara);
-            if (!isKiara) this.addToHistory(rawName);
-        };
-    }
-
-    updateUI(artist, title, isKiara) {
-        this.nodes.artist.innerText = isKiara ? "KIARA • LOCUÇÃO" : artist;
-        this.nodes.title.innerText = isKiara ? "COMUNICADO DA REDE" : title;
-        
-        const badge = document.getElementById('badge-live');
-        badge.className = isKiara ? "badge badge-purple" : "badge badge-red";
-        document.getElementById('badge-text').innerText = isKiara ? "KIARA NO AR" : "AO VIVO";
-        document.querySelector('.player-art-container').classList.add('playing');
-    }
-
-    addToHistory(name) {
-        if (this.state.history[0]?.name === name) return;
-        const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        this.state.history.unshift({ name, time });
-        this.state.history = this.state.history.slice(0, 10);
-        localStorage.setItem('4mfm_history', JSON.stringify(this.state.history));
-        this.renderHistory();
-    }
-
-    renderHistory() {
-        this.nodes.history.innerHTML = this.state.history.map(item => `
-            <div class="history-item">
-                <p class="text-[11px] font-black uppercase truncate text-white/90">${item.name}</p>
-                <div class="flex justify-between items-center opacity-40 text-[9px] mt-1">
-                    <span class="text-green-500 font-bold">4MFM LOG</span>
-                    <span>${item.time}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    buildVisualizer() {
-        this.nodes.visualizer.innerHTML = Array(12).fill('<div class="bar"></div>').join('');
-    }
-
-    startBackgrounds() {
-        const layers = [document.getElementById('bg-layer-1'), document.getElementById('bg-layer-2')];
-        const update = () => {
-            const imgIdx = Math.floor(Math.random() * 56) + 1;
-            const nextLayer = layers[this.state.currentLayer % 2];
-            const prevLayer = layers[(this.state.currentLayer + 1) % 2];
-            nextLayer.style.backgroundImage = `url('./imgs/img${String(imgIdx).padStart(3, '0')}.png')`;
-            nextLayer.classList.add('active');
-            prevLayer.classList.remove('active');
-            this.state.currentLayer++;
-        };
-        update();
-        setInterval(update, CONFIG.BG_INTERVAL);
-    }
+    sendNotification(title, body) {
+        if (Notification.permission === "granted") {
+            new Notification(title, { body, icon: CONFIG.LOGO_URL });
+        }
+    },
 
     startClock() {
         setInterval(() => {
-            document.getElementById("digital-clock").innerText = new Date().toLocaleTimeString('pt-BR');
+            const now = new Date();
+            el.liveClock.innerText = now.toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
         }, 1000);
-        setInterval(() => {
-            const count = Math.floor(Math.random() * 20) + 130;
-            document.getElementById("listener-count").innerText = count;
-        }, 5000);
-    }
+    },
 
-    showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.replace('screen-active', 'screen-hidden'));
-        document.getElementById(`screen-${id}`).classList.replace('screen-hidden', 'screen-active');
+    simulateListeners() {
+        el.listenerCount.innerText = state.currentListeners;
+        setInterval(() => {
+            state.currentListeners += Math.floor(Math.random() * 5) - 2;
+            if (state.currentListeners < 50) state.currentListeners = 50;
+            el.listenerCount.innerText = state.currentListeners;
+        }, 8000);
+    }
+};
+
+/** ================================
+ * VISUAIS
+================================= */
+
+function updateVisuals() {
+    if (state.mode === "video") {
+        el.image.style.display = "none";
+        el.video.style.display = "block";
+        el.video.src = CONFIG.VIDEOS[state.videoIdx];
+        el.video.play().catch(() => nextVisual());
+    } else {
+        el.video.style.display = "none";
+        el.image.style.display = "block";
+        el.image.src = CONFIG.IMAGES[state.imageIdx];
+        setTimeout(nextVisual, CONFIG.IMAGE_DURATION);
     }
 }
 
-window.onload = () => new RadioApp();
+function nextVisual() {
+    if (state.mode === "video") {
+        state.videoIdx++;
+        if (state.videoIdx >= CONFIG.VIDEOS.length) {
+            state.mode = "image";
+            state.imageIdx = 0;
+        }
+    } else {
+        state.imageIdx++;
+        if (state.imageIdx >= CONFIG.IMAGES.length) {
+            state.mode = "video";
+            state.videoIdx = 0;
+        }
+    }
+    updateVisuals();
+}
+
+el.video.onended = nextVisual;
+
+/** ================================
+ * PLAYLIST BLINDADA
+================================= */
+
+async function fetchPlaylist() {
+
+    const cached = localStorage.getItem(CONFIG.CACHE_KEY);
+
+    if (cached) {
+        const data = JSON.parse(cached);
+        if (Date.now() - data.timestamp < CONFIG.CACHE_TIME) {
+            state.musicList = data.music;
+            state.announcerList = data.ann;
+            return;
+        }
+    }
+
+    try {
+        const [mRes, aRes] = await Promise.all([
+            fetch(CONFIG.MUSIC_API).then(r => r.json()),
+            fetch(CONFIG.ANN_API).then(r => r.json())
+        ]);
+
+        const music = utils.shuffle(mRes.assets.filter(v => v.name.endsWith(".mp3")));
+        const ann = utils.shuffle(aRes.assets.filter(v => v.name.endsWith(".mp3")));
+
+        state.musicList = music;
+        state.announcerList = ann;
+
+        localStorage.setItem(CONFIG.CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            music,
+            ann
+        }));
+
+    } catch (err) {
+        console.warn("Erro API. Usando cache se disponível.");
+    }
+}
+
+/** ================================
+ * PLAYER INTELIGENTE
+================================= */
+
+async function playNext() {
+
+    if (state.musicList.length === 0) await fetchPlaylist();
+    if (state.musicList.length === 0) return;
+
+    const now = Date.now();
+    const shouldAnnounce =
+        (now - state.lastAnnouncer) > CONFIG.ANNOUNCER_INTERVAL &&
+        Math.random() < 0.3;
+
+    let currentItem, trackTitle, artistName;
+
+    if (shouldAnnounce && state.announcerList.length > 0) {
+        currentItem = state.announcerList.shift();
+        state.lastAnnouncer = now;
+        trackTitle = "Mensagem da Rádio";
+        artistName = "Kiara";
+    } else {
+        currentItem = state.musicList.shift();
+        const [artist, track] = utils.formatName(currentItem.name);
+        trackTitle = track || artist;
+        artistName = track ? artist : "4MFM Hits";
+    }
+
+    el.track.innerText = trackTitle;
+    el.artist.innerText = artistName;
+
+    await utils.crossfade(currentItem.browser_download_url);
+
+    utils.updateMediaSession(trackTitle, artistName);
+    utils.sendNotification("4MFM RADIO", `Tocando agora: ${trackTitle}`);
+}
+
+el.audio.onended = playNext;
+
+/** ================================
+ * RETENÇÃO INTELIGENTE
+================================= */
+
+function retentionSystem() {
+    setInterval(() => {
+        const duration = Date.now() - state.sessionStart;
+
+        if (duration > 120000 && !state.engaged) {
+            state.engaged = true;
+            el.shareBtn.classList.remove("hidden");
+            utils.sendNotification("Gostando da 4MFM?", "Compartilhe com seus amigos!");
+        }
+    }, 10000);
+}
+
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden && Notification.permission === "granted") {
+        utils.sendNotification("4MFM continua ao vivo!", "Volte para ouvir mais hits!");
+    }
+});
+
+/** ================================
+ * INICIALIZAÇÃO
+================================= */
+
+el.startBtn.onclick = async () => {
+
+    if (state.isStarted) return;
+
+    state.isStarted = true;
+
+    if ("Notification" in window)
+        await Notification.requestPermission();
+
+    el.startBtn.classList.add("hidden");
+    el.notice.classList.add("hidden");
+    el.visualizer.classList.remove("hidden");
+
+    utils.startClock();
+    utils.simulateListeners();
+    retentionSystem();
+
+    await fetchPlaylist();
+
+    const saved = localStorage.getItem(CONFIG.SAVE_KEY);
+
+    if (saved) {
+        try {
+            const d = JSON.parse(saved);
+            el.audio.src = d.src;
+            el.audio.currentTime = d.time;
+            el.track.innerText = d.title;
+            el.artist.innerText = d.artist;
+            await el.audio.play();
+        } catch {
+            playNext();
+        }
+    } else {
+        playNext();
+    }
+
+    updateVisuals();
+    setInterval(utils.save, 15000);
+};
+
+utils.startClock();
