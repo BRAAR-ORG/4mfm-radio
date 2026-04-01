@@ -2,90 +2,52 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>4MFM RADIO</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon/favicon.ico">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-black text-white overflow-hidden select-none font-['Inter']">
+<body>
+    <video id="bgVideo" muted playsinline></video>
+    <img id="bgImage" alt="Background">
+    <div class="overlay"></div>
 
-    <div id="bg-wrapper" aria-hidden="true">
-        <div id="bg-layer-1" class="bg-layer active"></div>
-        <div id="bg-layer-2" class="bg-layer"></div>
-        <div class="bg-overlay"></div>
+    <header>
+        <img src="icon/logo-4mfm.png" alt="4MFM LOGO">
+    </header>
+
+    <div class="notice" id="notice">
+        Clique para <b>SINTONIZAR</b>
     </div>
 
-    <main id="screen-home" class="screen screen-active flex flex-col items-center justify-center p-6 text-center">
-        <div class="hero-content">
-            <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-2 italic">
-                4M<span class="text-green-500">FM</span>
-            </h1>
-            <p class="text-green-500 tracking-[0.5em] font-bold text-[10px] md:text-xs mb-12 uppercase opacity-80">
-                O Som do Futuro Agora
-            </p>
-            
-            <button id="btn-start" class="btn-primary group">
-                <span class="relative z-10">SINTONIZAR</span>
-                <div class="btn-glow"></div>
-            </button>
-            
-            <p id="status-label" class="mt-8 text-[9px] text-zinc-500 uppercase font-mono tracking-[0.2em] h-4">
-                Estação pronta
-            </p>
+    <main class="panel">
+        <div class="panel-header">
+            <div class="live-tag"><span class="pulse-dot"></span>AO VIVO</div>
+            <div class="clock" id="liveClock">00:00</div>
+            <div class="listeners">👥 <span id="listenerCount">--</span></div>
         </div>
+
+        <div class="visualizer hidden" id="visualizer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div>
+        </div>
+
+        <div class="track-info">
+            <div class="track" id="track">Aguardando...</div>
+            <div class="artist" id="artist">4MFM RADIO</div>
+        </div>
+
+        <button id="startBtn">Sintonizar agora</button>
+
+        <button id="shareBtn" class="share-btn hidden">Compartilhar a Rádio 📻</button>
+        
+        <a href="https://forms.gle/A4anYXWFJKoXGThY6" target="_blank" class="feedback-link">
+            Deixe seu comentário ou pedido
+        </a>
     </main>
 
-    <section id="screen-player" class="screen screen-hidden flex flex-col md:flex-row h-screen">
-        
-        <article class="relative flex-1 flex flex-col p-6 md:p-16 justify-center items-center md:items-start">
-            <header class="absolute top-8 left-0 w-full px-6 md:px-16 flex justify-between items-center">
-                <div class="flex gap-3">
-                    <div id="badge-live" class="badge badge-red">
-                        <span class="ping-dot"></span> 
-                        <span id="badge-text">AO VIVO</span>
-                    </div>
-                    <div class="badge badge-glass font-mono">
-                        <span id="listener-count" class="text-white">--</span> 
-                        <span class="ml-1 opacity-50 uppercase">Ouvintes</span>
-                    </div>
-                </div>
-                <div id="digital-clock" class="hidden md:block font-mono text-zinc-500 text-sm tracking-widest">00:00:00</div>
-            </header>
+    <audio id="audio" preload="auto"></audio>
 
-            <div class="main-player-ui flex flex-col items-center md:items-start w-full">
-                <div class="player-art-container group">
-                    <img src="icon/logo-4mfm.png" alt="4MFM" class="player-logo">
-                    <div id="visualizer-bars" class="visualizer"></div>
-                </div>
-
-                <div class="track-info mt-10 text-center md:text-left">
-                    <span id="track-artist" class="block text-green-500 font-bold tracking-[0.4em] text-xs uppercase mb-3">Sincronizando...</span>
-                    <h2 id="track-title" class="text-4xl md:text-7xl font-black leading-tight tracking-tighter mb-8 max-w-3xl">Carregando Fluxo</h2>
-                    
-                    <div class="controls-area">
-                        <button id="btn-request" class="btn-secondary">PEDIR MÚSICA</button>
-                    </div>
-                </div>
-            </div>
-        </article>
-
-        <aside class="history-sidebar glass-panel">
-            <div class="p-8 h-full flex flex-col">
-                <h3 class="flex justify-between items-center text-xs font-black tracking-[0.2em] text-green-500 uppercase mb-8 border-b border-white/10 pb-4">
-                    Últimas Tocadas <span>(10)</span>
-                </h3>
-                <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar space-y-4"></div>
-            </div>
-        </aside>
-    </section>
-
-    <audio id="main-audio" preload="auto" playsinline></audio>
     <script src="script.js"></script>
 </body>
 </html>
