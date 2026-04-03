@@ -1590,11 +1590,6 @@ const playlist = [
     src: "https://github.com/BRAAR-ORG/4mfm-radio/releases/download/sertanejo/Trio.Parada.Dura.-.A.Vaquinha.mp3"
   },
   { 
-    title: "Aceita Que Doi Menos", 
-    artist: "Trio Parada Dura",
-    src: "https://github.com/BRAAR-ORG/4mfm-radio/releases/download/sertanejo/Trio.Parada.Dura.-.Aceita.Que.Doi.Menos.mp3"
-  },
-  { 
     title: "Alo Motorista", 
     artist: "Trio Parada Dura",
     src: "https://github.com/BRAAR-ORG/4mfm-radio/releases/download/sertanejo/Trio.Parada.Dura.-.Alo.Motorista.mp3"
