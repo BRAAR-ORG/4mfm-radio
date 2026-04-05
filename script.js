@@ -11,7 +11,7 @@ const tituloOriginal = document.title;
 const BackgroundConfig = {
     folder: "Imgs/",
     prefix: "4mfmImg",
-    totalImages: 12,
+    totalImages: 21,
     extension: ".png",
     currentIdx: 1,
     intervalo: 10000
