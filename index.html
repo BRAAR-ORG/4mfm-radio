@@ -1,0 +1,159 @@
+ <!DOCTYPE html>
+
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>4MFM RADIO</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+</head>
+
+<body>
+
+
+    <img id="bgImage" src="" alt="Background">
+
+    <div class="overlay"></div>
+
+
+    <div class="container">
+
+        <header class="main-header">
+
+            <div class="logo-area">
+
+                <span class="logo-text">4MFM</span>
+
+                <span class="logo-sub">RADIO</span>
+
+            </div>
+
+        </header>
+
+
+        <main class="dashboard">
+
+            <div class="left-column">
+
+                <section class="video-box glass">
+
+                    <div class="video-content">
+
+                        <img id="bgImage" src="" alt="Background">
+
+<img src="Img-banner/4mfmImg001.png" id="studioImg" alt="Vitrine 4MFM">
+
+                        <div class="video-badge">4MFM RADIO</div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="player-box glass">
+
+                    <div class="player-content">
+
+                        <div class="album-art">
+
+                            <img src="icon/logo-4mfm.png" id="albumArt" alt="Capa">
+
+                        </div>
+
+                        <div class="track-info">
+
+                            <h2 id="track">Pronto para Sintonizar?</h2>
+
+                            <p id="artist">4MFM RADIO</p>
+
+                            <div class="clock" id="liveClock">00:00</div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="controls-area">
+
+                        <button id="startBtn" class="main-btn">
+
+                            <i class="fas fa-play"></i> SINTONIZAR AGORA
+
+                        </button>
+
+                       
+
+                        <div id="interactionGroup" class="interaction-group hidden">
+
+                            <button id="shareBtn" class="action-btn share">
+
+                                <i class="fas fa-share-alt"></i> Partilhar
+
+                            </button>
+
+                            <a href="https://forms.gle/1NrSipsVeHtBtKwy5" target="_blank" class="action-btn comment">
+
+                                <i class="fas fa-comment-dots"></i> Pedir Música
+
+                            </a>
+
+                            <div class="live-tag"><span class="pulse"></span> AO VIVO</div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+
+            <aside class="right-column glass">
+
+                <div class="visualizer-container">
+
+                    <div class="visualizer hidden" id="visualizer">
+
+                        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+
+                        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+
+                    </div>
+
+                </div>
+
+                <div id="notice" class="notice-text">
+
+                    Clique no botão para iniciar a transmissão em tempo real.
+
+                </div>
+
+            </aside>
+
+        </main>
+
+    </div>
+
+
+    <audio id="audio" preload="metadata"></audio>
+
+
+    <script src="playlist.js"></script>
+
+    <script src="script.js"></script>
+
+    <script src="anne.js"></script>
+
+    <script src="notification.js"></script>
+
+</body>
+
+</html> 

@@ -1,0 +1,200 @@
+ :root {
+
+    --glass-bg: rgba(255, 255, 255, 0.07);
+
+    --glass-border: rgba(255, 255, 255, 0.15);
+
+    --accent: #ff3333;
+
+    --text-main: #ffffff;
+
+    --text-dim: rgba(255, 255, 255, 0.5);
+
+}
+
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+
+body { background: #000; color: var(--text-main); overflow-x: hidden; min-height: 100vh; }
+
+
+/* Fundo Dinâmico */
+
+#bgImage {
+
+    position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover;
+
+    z-index: -2; transition: opacity 1.2s ease-in-out;
+
+}
+
+
+.overlay {
+
+    position: fixed; inset: 0; z-index: -1;
+
+    background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
+
+}
+
+
+.container { max-width: 1250px; margin: 0 auto; padding: 30px; }
+
+
+/* Cabeçalho */
+
+.main-header { text-align: right; margin-bottom: 25px; }
+
+.logo-text { display: block; font-size: 50px; font-weight: 900; letter-spacing: -2px; }
+
+.logo-sub { font-size: 11px; letter-spacing: 5px; color: var(--text-dim); }
+
+
+/* Layout Dashboard */
+
+.dashboard { display: grid; grid-template-columns: 1.8fr 1fr; gap: 25px; }
+
+
+.glass {
+
+    background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+
+    border: 1px solid var(--glass-border); border-radius: 25px; overflow: hidden;
+
+}
+
+
+/* Coluna Esquerda */
+
+.left-column { display: flex; flex-direction: column; gap: 25px; }
+
+
+.video-content { position: relative; line-height: 0; }
+
+.video-content img { width: 100%; height: auto; }
+
+.video-badge {
+
+    position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6);
+
+    padding: 5px 12px; border-radius: 5px; font-size: 10px; font-weight: bold;
+
+}
+
+
+.player-box { padding: 30px; display: flex; justify-content: space-between; align-items: center; }
+
+.player-content { display: flex; align-items: center; gap: 20px; }
+
+.album-art img { width: 90px; height: 90px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+
+
+.track-info h2 { font-size: 24px; margin-bottom: 5px; }
+
+.track-info p { color: var(--accent); font-weight: 600; font-size: 14px; }
+
+.clock { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+
+/* Botões */
+
+.main-btn {
+
+    background: #fff; color: #000; border: none; padding: 15px 30px;
+
+    border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.3s;
+
+}
+
+.main-btn:hover { background: var(--accent); color: #fff; transform: translateY(-3px); }
+
+
+.interaction-group { display: flex; align-items: center; gap: 12px; }
+
+.action-btn {
+
+    background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--glass-border);
+
+    padding: 10px 15px; border-radius: 12px; font-size: 12px; text-decoration: none; cursor: pointer;
+
+}
+
+.action-btn:hover { background: rgba(255,255,255,0.15); }
+
+
+.live-tag { color: var(--accent); font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 5px; }
+
+.pulse { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse-anim 1.5s infinite; }
+
+
+@keyframes pulse-anim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+
+/* Visualizer */
+
+.right-column { padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+.visualizer-container { height: 100px; display: flex; align-items: center; }
+
+.visualizer { display: flex; gap: 5px; align-items: flex-end; height: 50px; }
+
+.bar { width: 4px; height: 10px; background: #fff; border-radius: 2px; animation: wave 0.8s infinite alternate; }
+
+@keyframes wave { to { height: 45px; } }
+
+
+.hidden { display: none !important; }
+
+
+@media (max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
+
+
+.video-content img {
+
+    width: 100%;
+
+    height: auto;
+
+    transition: opacity 1s ease-in-out; /* Transição suave idêntica ao fundo */
+
+    display: block;
+
+} 
+/* Container que envolve o vídeo/imagem */
+.video-content { 
+    position: relative; 
+    height: 100%; /* Repassa a altura da vitrine para a imagem */
+    line-height: 0; 
+}
+
+/* Estilo da Vitrine (Banner) */
+.video-box {
+    position: relative;
+    overflow: hidden;
+    height: 350px; /* Altura da vitrine */
+}
+
+/* Unificando a regra da imagem para evitar conflitos */
+.video-content img, #studioImg {
+    width: 100%;
+    height: 100%; /* Força a imagem a preencher a altura */
+    object-fit: cover; /* Preenche a vitrine sem deformar a imagem */
+    object-position: center;
+    transition: opacity 1s ease-in-out, transform 1.5s ease;
+    display: block;
+}
+
+/* Efeito de zoom suave na vitrine quando a imagem troca ou no hover */
+.video-box:hover #studioImg {
+    transform: scale(1.05);
+}
+
+/* Overlay sutil na vitrine para destacar o badge */
+.video-content::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
+    pointer-events: none;
+}
