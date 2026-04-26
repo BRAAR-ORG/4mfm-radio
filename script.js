@@ -9,7 +9,7 @@ const tituloOriginal = document.title;
 const BackgroundConfig = {
     folder: "Imgs/",
     prefix: "4mfmImg",
-    totalImages: 8,
+    totalImages: 18,
     extension: ".png",
     currentIdx: 1,
     intervalo: 10000
@@ -18,7 +18,7 @@ const BackgroundConfig = {
 const BackgroundConfig1 = {
     folder: "Img-banner/",
     prefix: "4mfmBanner",
-    totalImages: 4,
+    totalImages: 5,
     extension: ".png",
     currentIdx: 1,
     intervalo: 10000
