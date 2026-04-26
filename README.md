@@ -1,78 +1,98 @@
-# 🎶 4MFM RADIO
-**A trilha sonora da sua melhor época.**
+<div align="center">
+  <img src="https://raw.githubusercontent.com/BRAAR-ORG/4mfm-radio/main/Img-banner/4mfmBanner004.png" alt="4MFM Radio Banner" width="60%">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Status-Online-success?style=for-the-badge&logo=statuspage&logoColor=white">
-  <img src="https://img.shields.io/badge/Estilo-Rádio%20Retrô-orange?style=for-the-badge&logo=retroarch&logoColor=white">
-  <img src="https://img.shields.io/badge/Brasil-🇧🇷-green?style=for-the-badge">
-</p>
+  <br>
 
-<p align="center">
+  <p align="center">
+    <img src="https://img.shields.io/badge/Status-Online-00FF00?style=for-the-badge&logo=statuspage&logoColor=black">
+    <img src="https://img.shields.io/badge/Estilo-Rádio%20Retrô-FF4500?style=for-the-badge&logo=retroarch&logoColor=white">
+    <img src="https://img.shields.io/badge/Região-Brasil-green?style=for-the-badge&logo=brave&logoColor=white">
+  </p>
+
   <a href="https://braar-org.github.io/4mfm-radio/" target="_blank">
-    <img src="https://img.shields.io/badge/OUÇA%20AGORA-CLIQUE%20AQUI-blueviolet?style=for-the-badge&logo=google-play&logoColor=white">
+    <img src="https://img.shields.io/badge/▶_OUÇA_AGORA-CLIQUE_AQUI-7B68EE?style=for-the-badge&logo=google-play&logoColor=white" height="45">
   </a>
-</p>
+
+  <br>
+  <p><strong>A trilha sonora da sua melhor época, sintonizada no agora.</strong></p>
+</div>
 
 ---
 
 ## 📻 A Máquina do Tempo Musical
 
-A **4MFM Radio** não é apenas uma rádio online; é um convite para uma viagem no tempo. Especializada nos **maiores sucessos das décadas de 70, 80 e 90**, nossa curadoria resgata as melodias que definiram gerações e os clássicos que o tempo não apaga.
+A **4MFM Radio** é mais que um player; é uma curadoria afetiva. Resgatamos as melodias que definiram gerações — dos sintetizadores dos anos 80 às guitarras icônicas dos anos 90 — processadas para a fidelidade sonora dos dias atuais.
 
-* **Curadoria Premium:** O melhor do Pop, Rock e Flashback.
-* **Qualidade High-End:** Som retrô processado com clareza digital moderna.
-* **Sem Fronteiras:** Clássicos nacionais e internacionais selecionados a dedo.
+> "A música é a única cápsula do tempo que realmente funciona."
+
+### ✨ O que preparamos para você:
+* **Curadoria Premium:** O suprassumo do Nacional e Internacional.
+* **Experiência High-End:** Som processado para máxima clareza digital.
+* **Foco no Ouvinte:** Sem anúncios invasivos, apenas o fluxo constante da nostalgia.
 
 ---
 
-## 🧭 Diferenciais da 4MFM
+## 🧭 Diferenciais da Estação
 
-| Recurso | Descrição |
+| Recurso | Por que amar? |
 | :--- | :--- |
-| **Non-Stop** | Programação 24 horas, 7 dias por semana. |
-| **Leveza** | Interface otimizada que não consome recursos excessivos. |
-| **Universal** | Ouça no PC, Tablet ou Smartphone sem instalar nada. |
-| **Foco na Música** | Playlist contínua e fluida, pensada para ser sua companhia. |
+| 🕒 **Non-Stop** | Programação 24 horas, pronta para qualquer momento do seu dia. |
+| ⚡ **Performance** | Código otimizado que não pesa no seu navegador ou bateria. |
+| 📱 **Anywhere** | Ouça no PC, tablet ou celular com a mesma qualidade. |
+| 🎧 **Interface** | Design minimalista que remete aos grandes sintonizadores clássicos. |
 
 ---
 
 ## 🛠️ Stack Técnica
 
-O projeto preza pela simplicidade e performance, utilizando tecnologias web modernas para entregar uma experiência de streaming estável.
+Simplicidade por fora, tecnologia sólida por dentro.
 
-* **Frontend:** HTML5 & CSS3 (Design Responsivo)
-* **Engine:** JavaScript (Manipulação de Áudio e Metadados)
-* **Hospedagem:** GitHub Pages (Baixa latência e alta disponibilidade)
+<div align="left">
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white">
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black">
+  <img src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=github&logoColor=white">
+</div>
+
+* **Frontend:** Interface responsiva construída com semântica moderna.
+* **Streaming Engine:** Fluxo de áudio otimizado para baixa latência.
+* **Deploy:** Hospedagem via GitHub Pages garantindo 99.9% de uptime.
 
 ---
 
 ## 🚀 Como Sintonizar
 
-1.  Acesse o portal: [**4mfm-radio.github.io**](https://braar-org.github.io/4mfm-radio/)
-2.  Dê o **Play** e deixe a nostalgia tomar conta.
-3.  **Dica:** Adicione aos seus favoritos para ter os clássicos sempre à mão.
+1. **Visite o Portal:** [braar-org.github.io/4mfm-radio](https://braar-org.github.io/4mfm-radio/)
+2. **Dê o Play:** Sinta a vibe instantaneamente.
+3. **Salve o Link:** Adicione aos favoritos e leve a 4MFM sempre com você.
 
 ---
 
 ## 👩‍🎤 Identidade & Carisma
 
-Nossa identidade visual e sonora foi inspirada nas grandes emissoras FM do passado. Unimos o calor da locução clássica com a agilidade da era digital, criando um ambiente acolhedor para quem ama música de verdade.
+Nossa marca é um tributo às eras de ouro da rádio FM. Unimos o visual vibrante e o calor humano da locução clássica com a agilidade que a era digital exige. É tecnologia com alma.
 
 ---
 
 ## 📌 Mantido por **BRAAR ORG**
 
-Desenvolvemos experiências digitais que conectam pessoas através da criatividade e tecnologia.
+A **BRAAR ORG** desenvolve soluções que conectam nostalgia e inovação.
 
 * 💻 **GitHub:** [@BRAAR-ORG](https://github.com/BRAAR-ORG)
+* 🛠️ **Missão:** Criar experiências digitais memoráveis.
 
 ---
 
-## ⭐ Apoie esta Iniciativa
+## ⭐ Apoie a Estação
 
-Gostou da rádio? Você pode ajudar o projeto a crescer:
+Gostou do som? Ajude a manter a rádio viva:
 * 🌟 **Star:** Deixe uma estrela neste repositório.
-* 📢 **Share:** Compartilhe o link com quem viveu os anos de ouro da música.
-* ❤️ **Enjoy:** O melhor apoio é a sua audiência.
+* 📢 **Share:** Compartilhe com quem aprecia música de qualidade.
+* ❤️ **Enjoy:** Sintonize e deixe a música fazer o resto.
 
-**4MFM Radio – Porque música boa não tem data de validade.**
+<div align="center">
+  <br>
+  <img src="https://img.shields.io/badge/4MFM_RADIO-Qualidade_Inabalável-blueviolet?style=social&logo=reverbnation">
+  <br>
+  <sub>Copyright © 2026 BRAAR ORG - Música boa não tem data de validade.</sub>
+</div>
