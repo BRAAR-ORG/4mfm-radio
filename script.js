@@ -1,9 +1,7 @@
-/* ============================================================
-   CONFIGURAÇÕES E ESTADO GLOBAL
-   ============================================================ */
 let currentAudio = document.getElementById('audio') || new Audio();
 let appState = { isLive: false };
 let filaReproducao = [];
+let lastSaveTime = 0; // Controle de gravação de progresso
 const tituloOriginal = document.title;
 
 const BackgroundConfig = {
@@ -34,16 +32,13 @@ window.onload = () => {
     const shareBtn = document.getElementById('shareBtn');
     const notice = document.getElementById('notice');
 
-    // Inicia funções básicas
     setInterval(atualizarRelogioReal, 1000);
     atualizarRelogioReal();
     iniciarSlideshow();
 
-    // Evento do Botão Sintonizar
     if (startBtn) {
         startBtn.onclick = () => {
             if (typeof playlist !== 'undefined' && playlist.length > 0) {
-                // UI: Esconde o botão e mostra o player
                 startBtn.classList.add('hidden');
                 if(notice) notice.classList.add('hidden');
                 if(interactionGroup) interactionGroup.classList.remove('hidden');
@@ -62,11 +57,12 @@ window.onload = () => {
         };
     }
 
-    // Evento do Botão Compartilhar
     if (shareBtn) {
         shareBtn.onclick = () => {
-            const trackName = document.getElementById('track').textContent;
-            const artistName = document.getElementById('artist').textContent;
+            const trackEl = document.getElementById('track');
+            const artistEl = document.getElementById('artist');
+            const trackName = trackEl ? trackEl.textContent : "Música";
+            const artistName = artistEl ? artistEl.textContent : "Artista";
             const shareText = `Estou ouvindo ${trackName} - ${artistName} na 4MFM RADIO! 📻`;
 
             if (navigator.share) {
@@ -82,7 +78,6 @@ window.onload = () => {
         };
     }
 
-    // Mudança de título quando o usuário sai da aba
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
             document.title = "📻 Volte para a rádio!";
@@ -91,49 +86,53 @@ window.onload = () => {
             setTimeout(() => { document.title = tituloOriginal; }, 3000);
         }
     });
+
+    // Otimização: Salvar o tempo decorrido com base no evento de áudio (a cada ~5 seg), não com setInterval solto
+    currentAudio.addEventListener('timeupdate', () => {
+        if (!currentAudio.paused && appState.isLive) {
+            const currentTime = currentAudio.currentTime;
+            if (currentTime - lastSaveTime > 5 || currentTime < lastSaveTime) {
+                localStorage.setItem('4mfm_last_time', currentTime);
+                lastSaveTime = currentTime;
+            }
+        }
+    });
 };
 
 /* ============================================================
    LÓGICA DO SLIDESHOW DUPLO (FUNDO E VITRINE)
    ============================================================ */
 function iniciarSlideshow() {
-    const bgImage = document.getElementById('bgImage');      // Camada de Fundo (Imgs/)
-    const studioImg = document.getElementById('studioImg');  // Camada Vitrine (Img-banner/)
+    const bgImage = document.getElementById('bgImage');      
+    const studioImg = document.getElementById('studioImg');  
     
     const trocarImagens = () => {
-        // Formata o número com 3 dígitos (ex: 001, 002...)
         const numBg = BackgroundConfig.currentIdx.toString().padStart(3, '0');
         const numBanner = BackgroundConfig1.currentIdx.toString().padStart(3, '0');
 
-        // Caminhos das fotos
         const pathFundo = `${BackgroundConfig.folder}${BackgroundConfig.prefix}${numBg}${BackgroundConfig.extension}`;
         const pathBanner = `${BackgroundConfig1.folder}${BackgroundConfig1.prefix}${numBanner}${BackgroundConfig1.extension}`;
         
-        // 1. Efeito de saída (Fade Out)
         if(bgImage) bgImage.style.opacity = "0.2"; 
         if(studioImg) studioImg.style.opacity = "0";
 
         setTimeout(() => {
-            // 2. Troca os arquivos nas fontes
-            if(bgImage) bgImage.src = pathFundo;
-            if(studioImg) studioImg.src = pathBanner;
-
-            // 3. Efeito de entrada (Fade In) após carregar
+            // CORREÇÃO: Setar o 'onload' antes do 'src' previne bugs se a imagem estiver em cache
             if(bgImage) {
                 bgImage.onload = () => { bgImage.style.opacity = "1"; };
+                bgImage.src = pathFundo;
             }
             if(studioImg) {
                 studioImg.onload = () => { studioImg.style.opacity = "1"; };
+                studioImg.src = pathBanner;
             }
 
-            // 4. Atualiza os índices de forma independente
             BackgroundConfig.currentIdx = (BackgroundConfig.currentIdx % BackgroundConfig.totalImages) + 1;
             BackgroundConfig1.currentIdx = (BackgroundConfig1.currentIdx % BackgroundConfig1.totalImages) + 1;
             
-        }, 1000); // Tempo do fade out
+        }, 1000); 
     };
 
-    // Executa a primeira vez e define o intervalo
     trocarImagens();
     setInterval(trocarImagens, BackgroundConfig.intervalo);
 }
@@ -157,17 +156,15 @@ function iniciarFluxo() {
     const lastTime = localStorage.getItem('4mfm_last_time');
 
     if (lastTrackIndex !== null && playlist[lastTrackIndex]) {
-        tocarMusica(parseInt(lastTrackIndex), parseFloat(lastTime) || 0);
+        const indexToPlay = parseInt(lastTrackIndex);
+        
+        // CORREÇÃO: Remove a música recuperada da fila atual para não ser repetida logo em seguida
+        filaReproducao = filaReproducao.filter(i => i !== indexToPlay);
+        
+        tocarMusica(indexToPlay, parseFloat(lastTime) || 0);
     } else {
         tocarProximaDaFila();
     }
-
-    // Salva progresso a cada segundo para não perder o ponto se a página recarregar
-    setInterval(() => {
-        if (!currentAudio.paused && appState.isLive) {
-            localStorage.setItem('4mfm_last_time', currentAudio.currentTime);
-        }
-    }, 1000);
 }
 
 function tocarProximaDaFila() {
@@ -182,12 +179,15 @@ function tocarMusica(index, startTime = 0) {
 
     localStorage.setItem('4mfm_last_index', index);
     
-    // Atualiza a interface do player
-    document.getElementById('track').textContent = track.title;
-    document.getElementById('artist').textContent = track.artist;
+    const trackEl = document.getElementById('track');
+    const artistEl = document.getElementById('artist');
+    
+    if (trackEl) trackEl.textContent = track.title;
+    if (artistEl) artistEl.textContent = track.artist;
 
     currentAudio.src = track.src;
     currentAudio.currentTime = startTime;
+    lastSaveTime = startTime; // Sincroniza o controle de save
     
     currentAudio.play().then(() => {
         if (window.showNotification) {
@@ -198,10 +198,8 @@ function tocarMusica(index, startTime = 0) {
         setTimeout(tocarProximaDaFila, 2000);
     });
 
-    // Quando a música acabar
     currentAudio.onended = () => {
         setTimeout(() => {
-            // Verifica se a Anne (IA) quer entrar antes da próxima música
             if (window.verificarIntervencaoDaAnne) {
                 window.verificarIntervencaoDaAnne(tocarProximaDaFila);
             } else {
@@ -210,7 +208,6 @@ function tocarMusica(index, startTime = 0) {
         }, 1200);
     };
 
-    // Tratamento de erros de link quebrado
     currentAudio.onerror = () => {
         console.error("Link de áudio falhou:", track.src);
         setTimeout(tocarProximaDaFila, 1000);
