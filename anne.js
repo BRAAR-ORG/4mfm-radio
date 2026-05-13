@@ -1,11 +1,7 @@
-/* ============================================================
-   SISTEMA DE LOCUÇÃO IA - Anne
-   ============================================================ */
-
 const AnneConfig = {
     baseFolder: "Anne/",  
     categorias: {
-        anuncios: [], // Removido string vazia para evitar erros
+        anuncios: [],
         falas: [
             "anne_fala_bastidores.mp3", "anne_fala_conexao_insta.mp3", 
             "anne_fala_curadoria.mp3", "anne_fala_escolha.mp3", 
@@ -19,9 +15,9 @@ const AnneConfig = {
         ]
     },
     chanceIntervencao: 0.1, 
-    contadorMusicas: 0, // Zerei aqui para a contagem ficar certinha
+    contadorMusicas: 0,
     frequenciaAnuncio: 0,
-    estaFalando: false // CORRIGIDO: Agora ela começa calada, esperando a vez dela!
+    estaFalando: false 
 };
 
 /**
@@ -49,7 +45,7 @@ function verificarIntervencaoDaAnne(callback) {
     };
 
     // 1. Prioridade Máxima: Anúncios por frequência
-    if (AnneConfig.contadorMusicas >= AnneConfig.frequenciaAnuncio) {
+    if (AnneConfig.frequenciaAnuncio > 0 && AnneConfig.contadorMusicas >= AnneConfig.frequenciaAnuncio) {
         if (AnneConfig.categorias.anuncios.length > 0) {
             AnneConfig.contadorMusicas = 0;
             return executarAudioIA("anuncios", finalizarIntervencao);
@@ -63,7 +59,6 @@ function verificarIntervencaoDaAnne(callback) {
 
         if (temFalas || temVinhetas) {
             const tipo = Math.random() > 0.5 ? "falas" : "vinhetas";
-            // Validação caso uma categoria esteja vazia
             const tipoFinal = AnneConfig.categorias[tipo].length > 0 ? tipo : (tipo === "falas" ? "vinhetas" : "falas");
             
             return executarAudioIA(tipoFinal, finalizarIntervencao);
@@ -102,10 +97,16 @@ function tocarAudioFinal(src, callback) {
 
     AnneConfig.estaFalando = true;
     const audioIA = new Audio(src);
-    audioIA.volume = 0.9; // Levemente mais baixo que a música para soar natural
+    audioIA.volume = 0.9; 
 
     if (window.showNotification) {
         window.showNotification("Anne no Ar", "Momento de interação na 4MFM...", "info");
+    }
+
+    // Função de segurança para garantir que o status resete
+    const finalizarEChamarCallback = () => {
+        AnneConfig.estaFalando = false;
+        callback();
     }
 
     audioIA.onended = () => {
@@ -116,12 +117,6 @@ function tocarAudioFinal(src, callback) {
         console.error("❌ Erro ao carregar voz da Anne:", src);
         finalizarEChamarCallback();
     };
-
-    // Função de segurança para garantir que o status resete
-    const finalizarEChamarCallback = () => {
-        AnneConfig.estaFalando = false;
-        callback();
-    }
 
     // Tenta dar o play (respeitando políticas de autoplay)
     audioIA.play().catch((e) => {
