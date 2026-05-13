@@ -31,31 +31,54 @@ body {
     background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
 }
 
-.container { max-width: 1250px; margin: 0 auto; padding: 30px; }
+.container { 
+    width: 100%; 
+    max-width: 1250px; 
+    margin: 0 auto; 
+    padding: clamp(15px, 3vw, 30px); 
+}
 
 /* Cabeçalho */
 .main-header { text-align: right; margin-bottom: 25px; }
-.logo-text { display: block; font-size: 50px; font-weight: 900; letter-spacing: -2px; }
+.logo-text { 
+    display: block; 
+    font-size: clamp(32px, 5vw, 50px); 
+    font-weight: 900; 
+    letter-spacing: -2px; 
+    line-height: 1;
+}
 .logo-sub { font-size: 11px; letter-spacing: 5px; color: var(--text-dim); }
 
 /* Layout Dashboard */
-.dashboard { display: grid; grid-template-columns: 1.8fr 1fr; gap: 25px; }
+.dashboard { 
+    display: grid; 
+    grid-template-columns: 1.8fr 1fr; 
+    gap: clamp(15px, 2vw, 25px); 
+}
 
 .glass {
-    background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-    border: 1px solid var(--glass-border); border-radius: 25px; overflow: hidden;
+    background: var(--glass-bg); 
+    backdrop-filter: blur(25px); 
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border); 
+    border-radius: 25px; 
+    overflow: hidden;
 }
 
 /* Coluna Esquerda */
-.left-column { display: flex; flex-direction: column; gap: 25px; }
+.left-column { display: flex; flex-direction: column; gap: inherit; }
 
 /* Vitrine (Banner / Vídeo) */
 .video-box {
-    position: relative; overflow: hidden; height: 350px;
+    position: relative; 
+    overflow: hidden; 
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 400px;
 }
 
 .video-content { 
-    position: relative; height: 100%; line-height: 0; 
+    position: relative; width: 100%; height: 100%; line-height: 0; 
 }
 
 .video-content img, #studioImg {
@@ -79,22 +102,38 @@ body {
 
 /* Player */
 .player-box { 
-    padding: 30px; display: flex; justify-content: space-between; 
-    align-items: center; gap: 20px; flex-wrap: wrap; 
+    padding: clamp(20px, 3vw, 30px); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: 20px; 
+    flex-wrap: wrap; 
 }
 
-.player-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.album-art img { width: 90px; height: 90px; border-radius: 15px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
+.player-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; flex: 1; }
+.album-art img { 
+    width: clamp(70px, 10vw, 90px); 
+    height: clamp(70px, 10vw, 90px); 
+    border-radius: 15px; 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+}
 
-.track-info h2 { font-size: 24px; margin-bottom: 5px; }
+.track-info h2 { font-size: clamp(18px, 3vw, 24px); margin-bottom: 5px; }
 .track-info p { color: var(--accent); font-weight: 600; font-size: 14px; }
 .clock { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
 
 /* Botões */
+.controls-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 15px;
+}
+
 .main-btn {
     background: #fff; color: #000; border: none; padding: 15px 30px;
     border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.3s;
-    white-space: nowrap;
+    white-space: nowrap; min-height: 44px;
 }
 .main-btn:hover { background: var(--accent); color: #fff; transform: translateY(-3px); }
 
@@ -102,6 +141,7 @@ body {
 .action-btn {
     background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--glass-border);
     padding: 10px 15px; border-radius: 12px; font-size: 12px; text-decoration: none; cursor: pointer;
+    min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
 }
 .action-btn:hover { background: rgba(255,255,255,0.15); }
 
@@ -110,9 +150,16 @@ body {
 
 @keyframes pulse-anim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
-/* Visualizer */
-.right-column { padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.visualizer-container { height: 100px; display: flex; align-items: center; }
+/* Visualizer & Coluna Direita */
+.right-column { 
+    padding: clamp(20px, 3vw, 30px); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center;
+}
+.visualizer-container { height: 100px; display: flex; align-items: center; margin-bottom: 15px; }
 .visualizer { display: flex; gap: 5px; align-items: flex-end; height: 50px; }
 .bar { width: 4px; height: 10px; background: #fff; border-radius: 2px; animation: wave 0.8s infinite alternate; }
 @keyframes wave { to { height: 45px; } }
@@ -120,34 +167,19 @@ body {
 .hidden { display: none !important; }
 
 /* ========================================================
-   MEDIA QUERIES (Responsividade Total)
+   MEDIA QUERIES (Responsividade)
    ======================================================== */
 
-/* Monitores menores e Laptops */
 @media (max-width: 900px) { 
     .dashboard { grid-template-columns: 1fr; } 
-}
-
-/* Tablets e Celulares Grandes */
-@media (max-width: 768px) {
-    .container { padding: 15px; }
-    
+    .controls-area { align-items: flex-start; width: 100%; }
     .main-header { text-align: center; }
-    .logo-text { font-size: 40px; }
-    
-    .player-box { flex-direction: column; text-align: center; padding: 20px; }
-    .player-content { flex-direction: column; justify-content: center; }
-    
-    .interaction-group { justify-content: center; width: 100%; }
-    .main-btn { width: 100%; } /* Botão principal estica no mobile */
-    
-    .video-box { height: 250px; }
 }
 
-/* Celulares Pequenos */
-@media (max-width: 480px) {
-    .video-box { height: 200px; }
-    .logo-text { font-size: 32px; }
-    .album-art img { width: 75px; height: 75px; }
-    .track-info h2 { font-size: 20px; }
+@media (max-width: 600px) {
+    .player-box { flex-direction: column; text-align: center; }
+    .player-content { flex-direction: column; justify-content: center; }
+    .controls-area { align-items: center; }
+    .interaction-group { justify-content: center; width: 100%; }
+    .main-btn { width: 100%; }
 }
