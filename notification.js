@@ -1,13 +1,9 @@
-/* ============================================================
-   SISTEMA DE NOTIFICAÇÕES 4MFM (TOASTS)
-   ============================================================ */
-
 const styles = `
 .toast-container {
     position: fixed;
     top: 30px;
     right: 30px;
-    z-index: 100000; /* Garantir que fique acima de tudo */
+    z-index: 100000;
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -24,12 +20,9 @@ const styles = `
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-left: 5px solid #ff3333;
     box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-    
-    /* Animação */
     transform: translateX(130%);
     opacity: 0;
     transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    
     min-width: 280px;
     max-width: 380px;
     pointer-events: auto;
@@ -45,7 +38,7 @@ const styles = `
 .toast h4 {
     font-size: 14px;
     margin-bottom: 4px;
-    color: #ff3333; /* Cor Accent da 4MFM */
+    color: #ff3333;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -64,14 +57,11 @@ const styles = `
 /* Variações de Cores */
 .toast.success { border-left-color: #00e676; }
 .toast.success h4 { color: #00e676; }
-
 .toast.info { border-left-color: #00b0ff; }
 .toast.info h4 { color: #00b0ff; }
-
 .toast.warning { border-left-color: #ffea00; }
 .toast.warning h4 { color: #ffea00; }
 
-/* Barra de progresso interna (detalhe visual) */
 .toast::after {
     content: "";
     position: absolute;
@@ -90,12 +80,8 @@ document.head.appendChild(styleSheet);
 
 /**
  * Exibe uma notificação na tela
- * @param {string} titulo - Título em destaque
- * @param {string} mensagem - Texto descritivo
- * @param {string} tipo - 'success', 'info', 'warning' ou 'default'
  */
 window.showNotification = function(titulo, mensagem, tipo = "default") {
-    // Garantir que o container existe
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -104,11 +90,9 @@ window.showNotification = function(titulo, mensagem, tipo = "default") {
         document.body.appendChild(container);
     }
 
-    // Criar o elemento do Toast
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
     
-    // Adicionar ícones automáticos baseados no tipo
     let icon = "🔔";
     if (tipo === 'success') icon = "✅";
     if (tipo === 'info') icon = "🎵";
@@ -119,30 +103,22 @@ window.showNotification = function(titulo, mensagem, tipo = "default") {
         <p>${mensagem}</p>
     `;
 
-    // Adicionar ao topo do container (fila)
     container.prepend(toast);
 
-    // Trigger da animação de entrada
     requestAnimationFrame(() => {
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
     });
 
-    // Auto-destruição após 5 segundos
-    const duration = 5000;
-    
     setTimeout(() => {
         toast.classList.remove('show');
-        // Espera a animação de saída terminar antes de remover do DOM
         setTimeout(() => {
             toast.remove();
-            // Se o container estiver vazio, removemos ele também
-            if (container.childNodes.length === 0) {
-                container.remove();
-            }
+            // Evitamos remover o container para não quebrar referências
+            // caso novas notificações entrem exatamente neste momento.
         }, 500);
-    }, duration);
+    }, 5000);
 };
 
 console.log("🚀 Sistema de Notificações Glassmorphism pronto!");
