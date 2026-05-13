@@ -9,63 +9,66 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Pré-carregamento de fontes e ícones para performance -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
 </head>
 <body>
 
-    <img id="bgImage" src="" alt="Background">
-    <div class="overlay"></div>
+    <img id="bgImage" src="" alt="Fundo da interface da rádio" aria-hidden="true">
+    <div class="overlay" aria-hidden="true"></div>
 
     <div class="container">
         <header class="main-header">
             <div class="logo-area">
-                <span class="logo-text">4MFM</span>
+                <h1 class="logo-text">4MFM</h1>
                 <span class="logo-sub">RADIO</span>
             </div>
         </header>
 
         <main class="dashboard">
             <div class="left-column">
-                <section class="video-box glass">
+                <section class="video-box glass" aria-label="Vitrine do Estúdio">
                     <div class="video-content">
-                        <img src="Img-banner/4mfmBanner001.png" id="studioImg" alt="Vitrine 4MFM">
+                        <img src="Img-banner/4mfmBanner001.png" id="studioImg" alt="Banner da vitrine 4MFM RADIO" loading="lazy">
                         <div class="video-badge">4MFM RADIO</div>
                     </div>
                 </section>
 
-                <section class="player-box glass">
+                <section class="player-box glass" aria-label="Controles do Player">
                     <div class="player-content">
                         <div class="album-art">
-                            <img src="icon/logo-4mfm.png" id="albumArt" alt="Capa">
+                            <img src="icon/logo-4mfm.png" id="albumArt" alt="Capa do Álbum ou Logo" loading="lazy">
                         </div>
                         <div class="track-info">
                             <h2 id="track">Pronto para Sintonizar?</h2>
                             <p id="artist">4MFM RADIO</p>
-                            <div class="clock" id="liveClock">00:00</div>
+                            <div class="clock" id="liveClock" aria-live="polite">00:00</div>
                         </div>
                     </div>
 
                     <div class="controls-area">
-                        <button id="startBtn" class="main-btn">
-                            <i class="fas fa-play"></i> SINTONIZAR AGORA
+                        <button id="startBtn" class="main-btn" aria-label="Iniciar transmissão">
+                            <i class="fas fa-play" aria-hidden="true"></i> SINTONIZAR AGORA
                         </button>
                         
                         <div id="interactionGroup" class="interaction-group hidden">
-                            <button id="shareBtn" class="action-btn share">
-                                <i class="fas fa-share-alt"></i> Partilhar
+                            <button id="shareBtn" class="action-btn share" aria-label="Partilhar rádio">
+                                <i class="fas fa-share-alt" aria-hidden="true"></i> Compartilhar
                             </button>
-                            <a href="https://forms.gle/1NrSipsVeHtBtKwy5" target="_blank" class="action-btn comment">
-                                <i class="fas fa-comment-dots"></i> Pedir Música
+                            <a href="https://forms.gle/1NrSipsVeHtBtKwy5" target="_blank" rel="noopener noreferrer" class="action-btn comment">
+                                <i class="fas fa-comment-dots" aria-hidden="true"></i> Pedir Música
                             </a>
-                            <div class="live-tag"><span class="pulse"></span> AO VIVO</div>
+                            <div class="live-tag">
+                                <span class="pulse" aria-hidden="true"></span> AO VIVO
+                            </div>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <aside class="right-column glass">
+            <aside class="right-column glass" aria-labelledby="notice">
                 <div class="visualizer-container">
-                    <div class="visualizer hidden" id="visualizer">
+                    <div class="visualizer hidden" id="visualizer" aria-hidden="true">
                         <div class="bar"></div><div class="bar"></div><div class="bar"></div>
                         <div class="bar"></div><div class="bar"></div><div class="bar"></div>
                     </div>
@@ -79,9 +82,9 @@
 
     <audio id="audio" preload="metadata"></audio>
 
-    <script src="playlist.js"></script>
-    <script src="script.js"></script>
-    <script src="anne.js"></script>
-    <script src="notification.js"></script>
+    <script src="playlist.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="anne.js" defer></script>
+    <script src="notification.js" defer></script>
 </body>
 </html>
