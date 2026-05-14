@@ -11,7 +11,7 @@ const AnneConfig = {
         vinhetas: [
             "anne_publico_pedido.mp3", "anne_vinheta_assinatura.mp3", 
             "anne_vinheta_essencial.mp3", "anne_vinheta_presenca.mp3", 
-            "anne_vingeta_slogab.mp3"
+            "anne_vingeta_slogan.mp3"
         ]
     },
     chanceIntervencao: 0.1, 
