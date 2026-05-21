@@ -1,22 +1,14 @@
 const AnneConfig = {
     baseFolder: "Anne/",  
     categorias: {
-        anuncios: [],
-        falas: [
-            "anne_fala_bastidores.mp3", "anne_fala_conexao_insta.mp3", 
-            "anne_fala_curadoria.mp3", "anne_fala_escolha.mp3", 
-            "anne_fala_tempo_clima.mp3", "anne_papo_conselho.mp3", 
-            "anne_papo_nostalgia.mp3"
-        ],
-        vinhetas: [
-            "anne_publico_pedido.mp3", "anne_vinheta_assinatura.mp3", 
-            "anne_vinheta_essencial.mp3", "anne_vinheta_presenca.mp3", 
-            "anne_vingeta_slogan.mp3"
-        ]
+        anuncios: ["Anuncio_Anne_Curadoria_4M.mp3", "Anuncio_Anne_Estilo_Unico.mp3", "Anuncio_Anne_Refugio_Sonoro.mp3", "Anuncio_Anne_Elevando_O_Padrao.mp3",  "Anuncio_Anne_Brasil_Conectado.mp3",
+            "Anuncio_Anne_Convite_Instagram.mp3", "Fala_Anne_Sugestao_Musical.mp3", "Fala_Anne_Comunidade_Nacional.mp3"],
+        falas: ["Fala_Anne_Pausa_Necessaria.mp3", "Fala_Anne_Conexao_Visual.mp3", "Fala_Anne_Momento_Presente.mp3", "Fala_Anne_Sintonia_Fina.mp3", "Fala_Anne_Escolha_Consciente.mp3"],
+        vinhetas: ["Vinheta_Anne_4MFM_Assinatura.mp3", "Vinheta_Anne_Minimalista.mp3", "Vinheta_Anne_Identidade_Visual.mp3", "Vinheta_Anne_Social_Media.mp3", "Vinheta_Anne_Brasil_4M.mp3"]
     },
-    chanceIntervencao: 0.1, 
+    chanceIntervencao: 0.2, 
     contadorMusicas: 0,
-    frequenciaAnuncio: 0,
+    frequenciaAnuncio: 2,
     estaFalando: false 
 };
 
