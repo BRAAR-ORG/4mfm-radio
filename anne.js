@@ -6,7 +6,7 @@ const AnneConfig = {
         falas: ["Fala_Anne_Pausa_Necessaria.mp3", "Fala_Anne_Conexao_Visual.mp3", "Fala_Anne_Momento_Presente.mp3", "Fala_Anne_Sintonia_Fina.mp3", "Fala_Anne_Escolha_Consciente.mp3"],
         vinhetas: ["Vinheta_Anne_4MFM_Assinatura.mp3", "Vinheta_Anne_Minimalista.mp3", "Vinheta_Anne_Identidade_Visual.mp3", "Vinheta_Anne_Social_Media.mp3", "Vinheta_Anne_Brasil_4M.mp3"]
     },
-    chanceIntervencao: 0.2, 
+    chanceIntervencao: 0.5, 
     contadorMusicas: 0,
     frequenciaAnuncio: 2,
     estaFalando: false 
