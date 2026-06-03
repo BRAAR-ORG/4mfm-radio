@@ -119,8 +119,8 @@ function inicializarMesaDeSom() {
     // Cria o contexto de áudio (Nativo do navegador)
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
-    // Configura os Dois Toca-Discos
-    playerA = document.getElementById('audio') || new Audio();
+    // ⚠️ MUDANÇA AQUI: Ignoramos o HTML e criamos players 100% limpos na memória
+    playerA = new Audio();
     playerB = new Audio();
     
     // Permite que o áudio seja manipulado pela API sem erro de CORS
@@ -159,10 +159,12 @@ window.fadeAudio = function(audioEl, destino, duracao = 1000) {
     const gainNode = audioEl.gainNode;
     const tempoAtual = audioCtx.currentTime;
     
-    // Cancela qualquer fade anterior
+    // ⚠️ MUDANÇA AQUI: Precisão matemática no volume atual para não dar "estalos"
+    const volumeAtual = gainNode.gain.value;
+    
     gainNode.gain.cancelScheduledValues(tempoAtual);
-    // Fixa o volume atual para não dar "pulos"
-    gainNode.gain.setValueAtTime(gainNode.gain.value, tempoAtual);
+    gainNode.gain.setValueAtTime(volumeAtual, tempoAtual);
+    
     // Faz a rampa de volume suave usando hardware (O iPhone aceita isso!)
     gainNode.gain.linearRampToValueAtTime(destino, tempoAtual + (duracao / 1000));
 };
@@ -271,11 +273,20 @@ function tocarMusica(index, startTime = 0) {
     proximoPlayer.currentTime = startTime;
     
     // Volume zero inicialmente para o Fade In
-    if (proximoGain) proximoGain.gain.setValueAtTime(0, audioCtx.currentTime);
+    if (proximoGain) {
+        proximoGain.gain.cancelScheduledValues(audioCtx.currentTime);
+        proximoGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        proximoGain.gain.value = 0; // Força o valor na marra
+    }
 
     configurarEventosAudio(proximoPlayer);
 
     proximoPlayer.play().then(() => {
+        // ⚠️ MUDANÇA AQUI: Garante que a mesa de som não durma no iOS
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume(); 
+        }
+
         // Sobe o volume da nova música (Fade In)
         fadeAudio(proximoPlayer, 1.0, 3000);
 
@@ -294,7 +305,7 @@ function tocarMusica(index, startTime = 0) {
             window.showNotification("Tocando Agora 🎵", `${track.title} - ${track.artist}`, "info");
         }
     }).catch(e => {
-        console.warn("⚠️ Autoplay impedido.");
+        console.warn("⚠️ Autoplay impedido.", e);
         currentAudio = proximoPlayer;
         window.currentAudio = currentAudio;
     });
