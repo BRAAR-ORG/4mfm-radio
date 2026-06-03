@@ -1,25 +1,23 @@
-let currentAudio = document.getElementById('audio') || new Audio();
+// ============================================================
+// VARIÁVEIS GLOBAIS E ESTADO
+// ============================================================
 let appState = { isLive: false };
 let filaReproducao = [];
-let lastSaveTime = 0; // Controle de gravação de progresso
+let lastSaveTime = 0;
 const tituloOriginal = document.title;
 
+// --- A Nova Mesa de Som Virtual (Web Audio API) ---
+let audioCtx;
+let playerA, playerB, currentAudio;
+let isCrossfading = false;
+const tempoCrossfade = 4; // Segundos para iniciar o crossfade
+
 const BackgroundConfig = {
-    folder: "Imgs/",
-    prefix: "4mfmImg",
-    totalImages: 18,
-    extension: ".png",
-    currentIdx: 1,
-    intervalo: 10000
+    folder: "Imgs/", prefix: "4mfmImg", totalImages: 9, extension: ".png", currentIdx: 1, intervalo: 10000
 };
 
 const BackgroundConfig1 = {
-    folder: "Img-banner/",
-    prefix: "4mfmBanner",
-    totalImages: 5,
-    extension: ".png",
-    currentIdx: 1,
-    intervalo: 10000
+    folder: "Img-banner/", prefix: "4mfmBanner", totalImages: 7, extension: ".png", currentIdx: 1, intervalo: 10000
 };
 
 /* ============================================================
@@ -39,6 +37,9 @@ window.onload = () => {
     if (startBtn) {
         startBtn.onclick = () => {
             if (typeof playlist !== 'undefined' && playlist.length > 0) {
+                // 1. INICIA A MESA DE SOM (Obrigatório ser no clique para o iPhone liberar)
+                inicializarMesaDeSom();
+                
                 startBtn.classList.add('hidden');
                 if(notice) notice.classList.add('hidden');
                 if(interactionGroup) interactionGroup.classList.remove('hidden');
@@ -61,19 +62,14 @@ window.onload = () => {
         shareBtn.onclick = () => {
             const trackEl = document.getElementById('track');
             const artistEl = document.getElementById('artist');
-            const trackName = trackEl ? trackEl.textContent : "Música";
-            const artistName = artistEl ? artistEl.textContent : "Artista";
-            const shareText = `Estou ouvindo ${trackName} - ${artistName} na 4MFM RADIO! 📻`;
+            const shareText = `Estou ouvindo ${trackEl ? trackEl.textContent : "Música"} - ${artistEl ? artistEl.textContent : "Artista"} na 4MFM RADIO! 📻`;
 
             if (navigator.share) {
-                navigator.share({
-                    title: '4MFM RADIO',
-                    text: shareText,
-                    url: window.location.href
-                });
+                navigator.share({ title: '4MFM RADIO', text: shareText, url: window.location.href })
+                    .catch(err => console.log("Compartilhamento cancelado.", err));
             } else {
                 navigator.clipboard.writeText(`${shareText} ${window.location.href}`);
-                alert("Link e música copiados para a área de transferência!");
+                if (window.showNotification) window.showNotification("Copiado!", "Link copiado.", "success");
             }
         };
     }
@@ -87,20 +83,92 @@ window.onload = () => {
         }
     });
 
-    // Otimização: Salvar o tempo decorrido com base no evento de áudio (a cada ~5 seg), não com setInterval solto
-    currentAudio.addEventListener('timeupdate', () => {
-        if (!currentAudio.paused && appState.isLive) {
-            const currentTime = currentAudio.currentTime;
-            if (currentTime - lastSaveTime > 5 || currentTime < lastSaveTime) {
-                localStorage.setItem('4mfm_last_time', currentTime);
-                lastSaveTime = currentTime;
+    // ===== SENSOR DE INTERNET =====
+    window.addEventListener('offline', () => {
+        if (appState.isLive && currentAudio) {
+            currentAudio.pause(); 
+            if (window.showNotification) window.showNotification("Sem Internet 🌐", "Sua conexão caiu...", "warning");
+            document.title = "⚠️ Offline - Aguardando conexão";
+            
+            const trackEl = document.getElementById('track');
+            if (trackEl) trackEl.textContent = "Sem conexão de rede...";
+        }
+    });
+
+    window.addEventListener('online', () => {
+        if (appState.isLive && currentAudio) {
+            if (window.showNotification) window.showNotification("Conectado! 📶", "Voltando para a 4MFM...", "success");
+            document.title = tituloOriginal; 
+            
+            const index = localStorage.getItem('4mfm_last_index');
+            if (index !== null && playlist[index]) {
+                const trackEl = document.getElementById('track');
+                if (trackEl) trackEl.textContent = playlist[index].title;
             }
+            currentAudio.play().catch(e => console.warn("Autoplay impedido após reconectar.", e));
         }
     });
 };
 
 /* ============================================================
-   LÓGICA DO SLIDESHOW DUPLO (FUNDO E VITRINE)
+   O MOTOR WEB AUDIO API (MÁGICA PARA O iPHONE)
+   ============================================================ */
+function inicializarMesaDeSom() {
+    if (audioCtx) return; // Já foi iniciado
+    
+    // Cria o contexto de áudio (Nativo do navegador)
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Configura os Dois Toca-Discos
+    playerA = document.getElementById('audio') || new Audio();
+    playerB = new Audio();
+    
+    // Permite que o áudio seja manipulado pela API sem erro de CORS
+    playerA.crossOrigin = "anonymous"; 
+    playerB.crossOrigin = "anonymous";
+
+    // Conecta os players na mesa de som
+    const sourceA = audioCtx.createMediaElementSource(playerA);
+    const sourceB = audioCtx.createMediaElementSource(playerB);
+
+    // Cria os controles de Volume Nativos (GainNodes)
+    playerA.gainNode = audioCtx.createGain();
+    playerB.gainNode = audioCtx.createGain();
+
+    // Liga tudo na saída (Caixas de som)
+    sourceA.connect(playerA.gainNode).connect(audioCtx.destination);
+    sourceB.connect(playerB.gainNode).connect(audioCtx.destination);
+
+    currentAudio = playerA;
+    window.currentAudio = currentAudio;
+
+    // Desperta o iPhone (desbloqueia o áudio)
+    audioCtx.resume();
+}
+
+/**
+ * Nova versão do fadeAudio: Usa a Mesa de Som para ignorar o bloqueio do iPhone
+ */
+window.fadeAudio = function(audioEl, destino, duracao = 1000) {
+    if (!audioCtx || !audioEl.gainNode) {
+        // Fallback caso seja um áudio simples (ex: a própria voz da Anne)
+        audioEl.volume = destino;
+        return;
+    }
+    
+    const gainNode = audioEl.gainNode;
+    const tempoAtual = audioCtx.currentTime;
+    
+    // Cancela qualquer fade anterior
+    gainNode.gain.cancelScheduledValues(tempoAtual);
+    // Fixa o volume atual para não dar "pulos"
+    gainNode.gain.setValueAtTime(gainNode.gain.value, tempoAtual);
+    // Faz a rampa de volume suave usando hardware (O iPhone aceita isso!)
+    gainNode.gain.linearRampToValueAtTime(destino, tempoAtual + (duracao / 1000));
+};
+
+/* ============================================================
+   LÓGICA DO SLIDESHOW DUPLO
    ============================================================ */
 function iniciarSlideshow() {
     const bgImage = document.getElementById('bgImage');      
@@ -117,19 +185,11 @@ function iniciarSlideshow() {
         if(studioImg) studioImg.style.opacity = "0";
 
         setTimeout(() => {
-            // CORREÇÃO: Setar o 'onload' antes do 'src' previne bugs se a imagem estiver em cache
-            if(bgImage) {
-                bgImage.onload = () => { bgImage.style.opacity = "1"; };
-                bgImage.src = pathFundo;
-            }
-            if(studioImg) {
-                studioImg.onload = () => { studioImg.style.opacity = "1"; };
-                studioImg.src = pathBanner;
-            }
+            if(bgImage) { bgImage.onload = () => bgImage.style.opacity = "1"; bgImage.src = pathFundo; }
+            if(studioImg) { studioImg.onload = () => studioImg.style.opacity = "1"; studioImg.src = pathBanner; }
 
             BackgroundConfig.currentIdx = (BackgroundConfig.currentIdx % BackgroundConfig.totalImages) + 1;
             BackgroundConfig1.currentIdx = (BackgroundConfig1.currentIdx % BackgroundConfig1.totalImages) + 1;
-            
         }, 1000); 
     };
 
@@ -138,7 +198,7 @@ function iniciarSlideshow() {
 }
 
 /* ============================================================
-   MOTOR DE ÁUDIO E SHUFFLE
+   MOTOR DE ÁUDIO, SHUFFLE E CROSSFADE
    ============================================================ */
 function embaralharPlaylist() {
     filaReproducao = Array.from(Array(playlist.length).keys());
@@ -146,22 +206,28 @@ function embaralharPlaylist() {
         const j = Math.floor(Math.random() * (i + 1));
         [filaReproducao[i], filaReproducao[j]] = [filaReproducao[j], filaReproducao[i]];
     }
-    console.log("🎲 Playlist embaralhada com sucesso.");
 }
 
 function iniciarFluxo() {
-    if (filaReproducao.length === 0) embaralharPlaylist();
-    
-    const lastTrackIndex = localStorage.getItem('4mfm_last_index');
-    const lastTime = localStorage.getItem('4mfm_last_time');
+    const savedDate = localStorage.getItem('4mfm_last_save_date');
+    const validadeSessao = 24 * 60 * 60 * 1000; 
+    const agora = Date.now();
 
-    if (lastTrackIndex !== null && playlist[lastTrackIndex]) {
-        const indexToPlay = parseInt(lastTrackIndex);
-        
-        // CORREÇÃO: Remove a música recuperada da fila atual para não ser repetida logo em seguida
+    if (savedDate && (agora - parseInt(savedDate) > validadeSessao)) {
+        localStorage.removeItem('4mfm_last_index');
+        localStorage.removeItem('4mfm_last_time');
+        localStorage.removeItem('4mfm_last_save_date');
+    }
+
+    embaralharPlaylist();
+
+    const finalLastTrackIndex = localStorage.getItem('4mfm_last_index');
+    const finalLastTime = localStorage.getItem('4mfm_last_time');
+
+    if (finalLastTrackIndex !== null && playlist[finalLastTrackIndex]) {
+        const indexToPlay = parseInt(finalLastTrackIndex);
         filaReproducao = filaReproducao.filter(i => i !== indexToPlay);
-        
-        tocarMusica(indexToPlay, parseFloat(lastTime) || 0);
+        tocarMusica(indexToPlay, parseFloat(finalLastTime) || 0);
     } else {
         tocarProximaDaFila();
     }
@@ -179,38 +245,96 @@ function tocarMusica(index, startTime = 0) {
 
     localStorage.setItem('4mfm_last_index', index);
     
+    // Atualiza a interface
     const trackEl = document.getElementById('track');
     const artistEl = document.getElementById('artist');
+    const albumArtEl = document.getElementById('albumArt');
     
     if (trackEl) trackEl.textContent = track.title;
     if (artistEl) artistEl.textContent = track.artist;
-
-    currentAudio.src = track.src;
-    currentAudio.currentTime = startTime;
-    lastSaveTime = startTime; // Sincroniza o controle de save
     
-    currentAudio.play().then(() => {
-        if (window.showNotification) {
+    const coverSrc = track.cover || "icon/logo-4mfm.png";
+    if (albumArtEl) albumArtEl.src = coverSrc;
+
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.title, artist: track.artist, album: '4MFM RADIO',
+            artwork: [{ src: coverSrc, sizes: '512x512', type: 'image/png' }]
+        });
+    }
+
+    // --- LÓGICA DE DUAL PLAYER ---
+    let proximoPlayer = (currentAudio === playerA) ? playerB : playerA;
+    let proximoGain = proximoPlayer.gainNode;
+
+    proximoPlayer.src = track.src;
+    proximoPlayer.currentTime = startTime;
+    
+    // Volume zero inicialmente para o Fade In
+    if (proximoGain) proximoGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+    configurarEventosAudio(proximoPlayer);
+
+    proximoPlayer.play().then(() => {
+        // Sobe o volume da nova música (Fade In)
+        fadeAudio(proximoPlayer, 1.0, 3000);
+
+        // Abaixa a música velha (Fade Out)
+        if (currentAudio !== proximoPlayer && !currentAudio.paused) {
+            fadeAudio(currentAudio, 0.0, 3000);
+            setTimeout(() => currentAudio.pause(), 3000);
+        }
+
+        currentAudio = proximoPlayer;
+        window.currentAudio = currentAudio; 
+        isCrossfading = false;
+        lastSaveTime = startTime;
+
+        if (window.showNotification && startTime === 0) {
             window.showNotification("Tocando Agora 🎵", `${track.title} - ${track.artist}`, "info");
         }
     }).catch(e => {
-        console.warn("Autoplay impedido ou erro no link. Tentando próxima...");
-        setTimeout(tocarProximaDaFila, 2000);
+        console.warn("⚠️ Autoplay impedido.");
+        currentAudio = proximoPlayer;
+        window.currentAudio = currentAudio;
     });
+}
 
-    currentAudio.onended = () => {
-        setTimeout(() => {
-            if (window.verificarIntervencaoDaAnne) {
-                window.verificarIntervencaoDaAnne(tocarProximaDaFila);
-            } else {
-                tocarProximaDaFila();
+function configurarEventosAudio(player) {
+    player.ontimeupdate = () => {
+        if (!player.paused && appState.isLive) {
+            const currentTime = player.currentTime;
+            
+            // Salvar Progresso
+            if (currentTime - lastSaveTime > 5 || currentTime < lastSaveTime) {
+                localStorage.setItem('4mfm_last_time', currentTime);
+                localStorage.setItem('4mfm_last_save_date', Date.now()); 
+                lastSaveTime = currentTime;
             }
-        }, 1200);
+
+            // GATILHO DO CROSSFADE (Aplica antes da música acabar)
+            if (!isCrossfading && player.duration && (player.duration - currentTime <= tempoCrossfade)) {
+                isCrossfading = true;
+                if (window.verificarIntervencaoDaAnne) {
+                    window.verificarIntervencaoDaAnne(tocarProximaDaFila);
+                } else {
+                    tocarProximaDaFila();
+                }
+            }
+        }
     };
 
-    currentAudio.onerror = () => {
-        console.error("Link de áudio falhou:", track.src);
-        setTimeout(tocarProximaDaFila, 1000);
+    player.onended = () => {
+        if (!isCrossfading) {
+            if (window.verificarIntervencaoDaAnne) window.verificarIntervencaoDaAnne(tocarProximaDaFila);
+            else tocarProximaDaFila();
+        }
+    };
+
+    player.onerror = () => {
+        if (!navigator.onLine) return; 
+        console.error("❌ Link de áudio falhou.");
+        setTimeout(tocarProximaDaFila, 2000);
     };
 }
 
