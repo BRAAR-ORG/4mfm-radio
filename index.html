@@ -2,19 +2,24 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sintonize na 4MFM RADIO - Transmissão ao vivo, interação e a melhor programação.">
+    <meta name="theme-color" content="#1a1a1a">
     <title>4MFM RADIO</title>
     
     <link rel="icon" type="image/png" href="icon/logo-4mfm.png">
     <link rel="apple-touch-icon" href="icon/logo-4mfm.png">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <!-- Pré-carregamento de fontes e ícones para performance -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </noscript>
 </head>
 <body>
 
-    <img id="bgImage" src="" alt="Fundo da interface da rádio" aria-hidden="true">
+    <img id="bgImage" alt="Fundo da interface da rádio" aria-hidden="true">
     <div class="overlay" aria-hidden="true"></div>
 
     <div class="container">
@@ -80,7 +85,7 @@
         </main>
     </div>
 
-    <audio id="audio" preload="metadata"></audio>
+    <audio id="audio"></audio>
 
     <script src="playlist.js" defer></script>
     <script src="script.js" defer></script>
