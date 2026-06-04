@@ -4,6 +4,7 @@
     --accent: #ff3333;
     --text-main: #ffffff;
     --text-dim: rgba(255, 255, 255, 0.5);
+    --cor-camaleao: #ffffff; /* Cor dinâmica principal */
 }
 
 * { 
@@ -20,14 +21,23 @@ body {
     min-height: 100vh; 
 }
 
-/* Fundo Dinâmico */
+/* ========================================================
+   FUNDO E OVERLAYS
+   ======================================================== */
 #bgImage {
-    position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    z-index: -2; transition: opacity 1.2s ease-in-out;
+    position: fixed; 
+    inset: 0; 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover;
+    z-index: -2; 
+    transition: opacity 1.2s ease-in-out;
 }
 
 .overlay {
-    position: fixed; inset: 0; z-index: -1;
+    position: fixed; 
+    inset: 0; 
+    z-index: -1;
     background: radial-gradient(circle at center, transparent, rgba(0,0,0,0.8));
 }
 
@@ -38,8 +48,14 @@ body {
     padding: clamp(15px, 3vw, 30px); 
 }
 
-/* Cabeçalho */
-.main-header { text-align: right; margin-bottom: 25px; }
+/* ========================================================
+   CABEÇALHO
+   ======================================================== */
+.main-header { 
+    text-align: right; 
+    margin-bottom: 25px; 
+}
+
 .logo-text { 
     display: block; 
     font-size: clamp(32px, 5vw, 50px); 
@@ -47,9 +63,16 @@ body {
     letter-spacing: -2px; 
     line-height: 1;
 }
-.logo-sub { font-size: 11px; letter-spacing: 5px; color: var(--text-dim); }
 
-/* Layout Dashboard */
+.logo-sub { 
+    font-size: 11px; 
+    letter-spacing: 5px; 
+    color: var(--text-dim); 
+}
+
+/* ========================================================
+   LAYOUT DASHBOARD (GLASSMORPHISM)
+   ======================================================== */
 .dashboard { 
     display: grid; 
     grid-template-columns: 1.8fr 1fr; 
@@ -66,9 +89,15 @@ body {
 }
 
 /* Coluna Esquerda */
-.left-column { display: flex; flex-direction: column; gap: inherit; }
+.left-column { 
+    display: flex; 
+    flex-direction: column; 
+    gap: inherit; 
+}
 
-/* Vitrine (Banner / Vídeo) */
+/* ========================================================
+   VITRINE (BANNER / VÍDEO)
+   ======================================================== */
 .video-box {
     position: relative; 
     overflow: hidden; 
@@ -78,29 +107,48 @@ body {
 }
 
 .video-content { 
-    position: relative; width: 100%; height: 100%; line-height: 0; 
+    position: relative; 
+    width: 100%; 
+    height: 100%; 
+    line-height: 0; 
 }
 
 .video-content img, #studioImg {
-    width: 100%; height: 100%; object-fit: cover; object-position: center;
-    transition: opacity 1s ease-in-out, transform 1.5s ease; display: block;
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    object-position: center;
+    transition: opacity 1s ease-in-out, transform 1.5s ease; 
+    display: block;
 }
 
-.video-box:hover #studioImg { transform: scale(1.05); }
+.video-box:hover #studioImg { 
+    transform: scale(1.05); 
+}
 
 .video-content::after {
-    content: ''; position: absolute; inset: 0;
+    content: ''; 
+    position: absolute; 
+    inset: 0;
     background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
     pointer-events: none;
 }
 
 .video-badge {
-    position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.6);
-    padding: 5px 12px; border-radius: 5px; font-size: 10px; font-weight: bold;
+    position: absolute; 
+    top: 15px; 
+    left: 15px; 
+    background: rgba(0,0,0,0.6);
+    padding: 5px 12px; 
+    border-radius: 5px; 
+    font-size: 10px; 
+    font-weight: bold;
     z-index: 10;
 }
 
-/* Player */
+/* ========================================================
+   PLAYER & FAIXA ATUAL
+   ======================================================== */
 .player-box { 
     padding: clamp(20px, 3vw, 30px); 
     display: flex; 
@@ -110,19 +158,48 @@ body {
     flex-wrap: wrap; 
 }
 
-.player-content { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; flex: 1; }
+.player-content { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    flex-wrap: wrap; 
+    flex: 1; 
+}
+
 .album-art img { 
     width: clamp(70px, 10vw, 90px); 
     height: clamp(70px, 10vw, 90px); 
     border-radius: 15px; 
     box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+    object-fit: cover;
 }
 
-.track-info h2 { font-size: clamp(18px, 3vw, 24px); margin-bottom: 5px; }
-.track-info p { color: var(--accent); font-weight: 600; font-size: 14px; }
-.clock { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+/* Efeito Camaleão no Texto */
+#track {
+    color: var(--cor-camaleao);
+    transition: color 1.5s ease;
+}
 
-/* Botões */
+.track-info h2 { 
+    font-size: clamp(18px, 3vw, 24px); 
+    margin-bottom: 5px; 
+}
+
+.track-info p { 
+    color: var(--accent); 
+    font-weight: 600; 
+    font-size: 14px; 
+}
+
+.clock { 
+    font-size: 12px; 
+    color: var(--text-dim); 
+    margin-top: 5px; 
+}
+
+/* ========================================================
+   CONTROLES E BOTÕES
+   ======================================================== */
 .controls-area {
     display: flex;
     flex-direction: column;
@@ -131,26 +208,85 @@ body {
 }
 
 .main-btn {
-    background: #fff; color: #000; border: none; padding: 15px 30px;
-    border-radius: 15px; font-weight: 900; cursor: pointer; transition: 0.3s;
-    white-space: nowrap; min-height: 44px;
+    background: #fff; 
+    color: #000; 
+    border: none; 
+    padding: 15px 30px;
+    border-radius: 15px; 
+    font-weight: 900; 
+    cursor: pointer; 
+    transition: all 0.3s ease;
+    white-space: nowrap; 
+    min-height: 44px;
 }
-.main-btn:hover { background: var(--accent); color: #fff; transform: translateY(-3px); }
 
-.interaction-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.main-btn:hover { 
+    background: var(--accent); 
+    color: #fff; 
+    transform: translateY(-3px); 
+}
+
+.main-btn:active, .action-btn:active {
+    transform: scale(0.95);
+}
+
+.main-btn:focus-visible, .action-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.interaction-group { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+}
+
 .action-btn {
-    background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--glass-border);
-    padding: 10px 15px; border-radius: 12px; font-size: 12px; text-decoration: none; cursor: pointer;
-    min-height: 44px; display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.05); 
+    color: #fff; 
+    border: 1px solid var(--glass-border);
+    padding: 10px 15px; 
+    border-radius: 12px; 
+    font-size: 12px; 
+    text-decoration: none; 
+    cursor: pointer;
+    min-height: 44px; 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 8px;
+    transition: background 0.3s ease;
 }
-.action-btn:hover { background: rgba(255,255,255,0.15); }
 
-.live-tag { color: var(--accent); font-weight: bold; font-size: 11px; display: flex; align-items: center; gap: 5px; }
-.pulse { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse-anim 1.5s infinite; }
+.action-btn:hover { 
+    background: rgba(255,255,255,0.15); 
+}
 
-@keyframes pulse-anim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+.live-tag { 
+    color: var(--accent); 
+    font-weight: bold; 
+    font-size: 11px; 
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+}
 
-/* Visualizer & Coluna Direita */
+.pulse { 
+    width: 6px; 
+    height: 6px; 
+    background: var(--accent); 
+    border-radius: 50%; 
+    animation: pulse-anim 1.5s infinite; 
+}
+
+@keyframes pulse-anim { 
+    0% { transform: scale(1); opacity: 1; } 
+    100% { transform: scale(2.5); opacity: 0; } 
+}
+
+/* ========================================================
+   VISUALIZADOR DE ÁUDIO (COM EFEITO CAMALEÃO)
+   ======================================================== */
 .right-column { 
     padding: clamp(20px, 3vw, 30px); 
     display: flex; 
@@ -159,17 +295,53 @@ body {
     justify-content: center; 
     text-align: center;
 }
-.visualizer-container { height: 100px; display: flex; align-items: center; margin-bottom: 15px; }
-.visualizer { display: flex; gap: 5px; align-items: flex-end; height: 50px; }
-.bar { width: 4px; height: 10px; background: #fff; border-radius: 2px; animation: wave 0.8s infinite alternate; }
-@keyframes wave { to { height: 45px; } }
 
-.hidden { display: none !important; }
+.visualizer-container { 
+    height: 100px; 
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 15px;
+    /* Faz o bloco de ondas brilhar suavemente com a cor base da música */
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+    transition: filter 1.5s ease;
+}
+
+.visualizer { 
+    display: flex; 
+    gap: 5px; 
+    align-items: flex-end; 
+    height: 50px; 
+}
+
+/* As barras de som agora respondem dinamicamente à variável do JS */
+.bar { 
+    width: 4px; 
+    height: 10px; 
+    background: var(--cor-camaleao); 
+    border-radius: 2px; 
+    animation: wave 0.8s infinite alternate ease-in-out;
+    transition: background 1.5s ease; 
+}
+
+/* Animação defasada para o visualizador ficar realista */
+.bar:nth-child(1) { animation-delay: 0.1s; }
+.bar:nth-child(2) { animation-delay: 0.4s; }
+.bar:nth-child(3) { animation-delay: 0.2s; }
+.bar:nth-child(4) { animation-delay: 0.5s; }
+.bar:nth-child(5) { animation-delay: 0.3s; }
+.bar:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes wave { 
+    to { height: 45px; } 
+}
+
+.hidden { 
+    display: none !important; 
+}
 
 /* ========================================================
    MEDIA QUERIES (Responsividade)
    ======================================================== */
-
 @media (max-width: 900px) { 
     .dashboard { grid-template-columns: 1fr; } 
     .controls-area { align-items: flex-start; width: 100%; }
