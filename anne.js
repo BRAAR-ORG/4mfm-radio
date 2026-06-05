@@ -103,7 +103,7 @@
 
         // Troca o visual para a Anne
         if (DOM.track) DOM.track.textContent = `Hora Certa: ${horaFormatada}:00 ⏰`;
-        if (DOM.artist) DOM.artist.textContent = "Anne Locutora IA";
+        if (DOM.artist) DOM.artist.textContent = "Anne na Voz!!";
         if (DOM.albumArt) DOM.albumArt.src = "icon/logo-4mfm.png"; 
 
         console.log(`⏰ [Ao Vivo] Interrompendo a rádio para a Hora Certa: ${horaFormatada}h`);
