@@ -17,7 +17,7 @@ const playerB = new Audio();
 let currentAudio = playerA;
 
 // ============================================================
-// EXPORTAÇÕES GLOBAIS (Para a "Anne" e outros scripts)
+// EXPORTAÇÕES GLOBAIS 
 // ============================================================
 window.currentAudio = currentAudio;
 
