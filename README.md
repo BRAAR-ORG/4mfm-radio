@@ -1,51 +1,51 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/BRAAR-ORG/4mfm-radio/main/Img-banner/4mfmBanner004.png" alt="4MFM Radio Banner" width="60%">
+  <img src="https://raw.githubusercontent.com/BRAAR-ORG/4mfm-radio/main/Img-banner/4mfmBanner004.png" alt="4MFM Radio Banner" width="70%">
 
-  <br>
+  <br><br>
 
   <p align="center">
-    <img src="https://img.shields.io/badge/Status-Online-00FF00?style=for-the-badge&logo=statuspage&logoColor=black">
-    <img src="https://img.shields.io/badge/Estilo-Rádio%20Retrô-FF4500?style=for-the-badge&logo=retroarch&logoColor=white">
-    <img src="https://img.shields.io/badge/Região-Brasil-green?style=for-the-badge&logo=brave&logoColor=white">
+    <img src="https://img.shields.io/badge/Status-Online-31C48D?style=for-the-badge&logo=statuspage&logoColor=white">
+    <img src="https://img.shields.io/badge/Segmento-Rádio%20Retrô-FF4500?style=for-the-badge&logo=retroarch&logoColor=white">
+    <img src="https://img.shields.io/badge/Região-Brasil-009B3A?style=for-the-badge&logo=brave&logoColor=white">
   </p>
 
-  <a href="https://braar-org.github.io/4mfm-radio/" target="_blank">
-    <img src="https://img.shields.io/badge/▶_OUÇA_AGORA-CLIQUE_AQUI-7B68EE?style=for-the-badge&logo=google-play&logoColor=white" height="45">
+  <a href="https://braar-org.github.io/4mfm-radio/" target="_blank" rel="noopener noreferrer">
+    <img src="https://img.shields.io/badge/▶_ACESSE_A_ESTAÇÃO-OUÇA_AGORA-6366F1?style=for-the-badge&logo=google-play&logoColor=white" height="45">
   </a>
 
-  <br>
-  <p><strong>A trilha sonora da sua melhor época, sintonizada no agora.</strong></p>
+  <br><br>
+  <p><strong>A fusão perfeita entre a nostalgia musical e a engenharia de áudio moderna.</strong></p>
 </div>
 
 ---
 
-## 📻 A Máquina do Tempo Musical
+## 📻 Sobre o Projeto
 
-A **4MFM Radio** é mais que um player; é uma curadoria afetiva. Resgatamos as melodias que definiram gerações — dos sintetizadores dos anos 80 às guitarras icônicas dos anos 90 — processadas para a fidelidade sonora dos dias atuais.
+A **4MFM Radio** é uma plataforma digital de streaming dedicada à preservação e curadoria do patrimônio musical global. Desenvolvida para reviver as décadas que moldaram a cultura pop — com foco especial nos sintetizadores dos anos 80 e no ecletismo dos anos 90 —, a estação entrega uma experiência de audição contínua, otimizada para os padrões contemporâneos de fidelidade sonora.
 
-> "A música é a única cápsula do tempo que realmente funciona."
+> "A música atua como o principal vetor de preservação histórica e memória afetiva."
 
-### ✨ O que preparamos para você:
-* **Curadoria Premium:** O suprassumo do Nacional e Internacional.
-* **Experiência High-End:** Som processado para máxima clareza digital.
-* **Foco no Ouvinte:** Sem anúncios invasivos, apenas o fluxo constante da nostalgia.
+### 🎯 Proposta de Valor
+* **Curadoria Editorial:** Seleção criteriosa de faixas nacionais e internacionais clássicas.
+* **Fidelidade Acústica:** Áudio processado digitalmente para máxima clareza e equilíbrio de frequências.
+* **Experiência Ininterrupta:** Transmissão focada no conteúdo musical, livre de interrupções comerciais comerciais invasivas.
 
 ---
 
-## 🧭 Diferenciais da Estação
+## 🧭 Arquitetura e Diferenciais
 
-| Recurso | Por que amar? |
+| Atributo | Especificação Técnica e Benefício |
 | :--- | :--- |
-| 🕒 **Non-Stop** | Programação 24 horas, pronta para qualquer momento do seu dia. |
-| ⚡ **Performance** | Código otimizado que não pesa no seu navegador ou bateria. |
-| 📱 **Anywhere** | Ouça no PC, tablet ou celular com a mesma qualidade. |
-| 🎧 **Interface** | Design minimalista que remete aos grandes sintonizadores clássicos. |
+| 🕒 **Disponibilidade 24/7** | Transmissão contínua via CDN, projetada para alta disponibilidade. |
+| ⚡ **Performance Ultra-Light** | Código-fonte otimizado para baixo consumo de memória RAM e processamento. |
+| 📱 **Cross-Platform** | Design responsivo adaptável a desktops, tablets e dispositivos mobile. |
+| 🎧 **Interface Clássica** | UI minimalista inspirada nos sintonizadores analógicos de alta fidelidade (Hi-Fi). |
 
 ---
 
-## 🛠️ Stack Técnica
+## 🛠️ Stack Tecnológica
 
-Simplicidade por fora, tecnologia sólida por dentro.
+O projeto foi estruturado sob o princípio da eficiência, utilizando tecnologias nativas para garantir máxima performance sem dependências robustas.
 
 <div align="left">
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white">
@@ -54,45 +54,46 @@ Simplicidade por fora, tecnologia sólida por dentro.
   <img src="https://img.shields.io/badge/GitHub_Pages-222222?style=flat-square&logo=github&logoColor=white">
 </div>
 
-* **Frontend:** Interface responsiva construída com semântica moderna.
-* **Streaming Engine:** Fluxo de áudio otimizado para baixa latência.
-* **Deploy:** Hospedagem via GitHub Pages garantindo 99.9% de uptime.
+* **Camada de Apresentação (Frontend):** Estrutura semântica em HTML5 combinada com folhas de estilo em CSS3 para garantir acessibilidade e responsividade.
+* **Motor de Transmissão (Streaming Engine):** Consumo de API de áudio e manipulação do DOM via JavaScript nativo, reduzindo a latência do buffer.
+* **Distribuição (Deploy):** Infraestrutura de hospedagem estática via GitHub Pages, assegurando estabilidade operacional contínua.
 
 ---
 
 ## 🚀 Como Sintonizar
 
-1. **Visite o Portal:** [braar-org.github.io/4mfm-radio](https://braar-org.github.io/4mfm-radio/)
-2. **Dê o Play:** Sinta a vibe instantaneamente.
-3. **Salve o Link:** Adicione aos favoritos e leve a 4MFM sempre com você.
+1. **Acesse o Portal Oficial:** Navegue até [braar-org.github.io/4mfm-radio](https://braar-org.github.io/4mfm-radio/).
+2. **Inicie o Fluxo:** Clique no botão de reprodução para sincronizar com a transmissão ao vivo.
+3. **Fixe nos Favoritos:** Salve o endereço em seu navegador para acessos futuros otimizados.
 
 ---
 
-## 👩‍🎤 Identidade & Carisma
+## 👩‍🎤 Identidade Institucional
 
-Nossa marca é um tributo às eras de ouro da rádio FM. Unimos o visual vibrante e o calor humano da locução clássica com a agilidade que a era digital exige. É tecnologia com alma.
+A identidade da **4MFM Radio** é uma homenagem à era de ouro das estações FM. O projeto combina a estética vibrante das transmissões analógicas e o calor da locução clássica com as demandas de usabilidade do ecossistema digital moderno. Representamos a engenharia técnica aplicada à arte de comunicar.
 
 ---
 
-## 📌 Mantido por **BRAAR ORG**
+## 📌 Mantido por BRAAR ORG
 
-A **BRAAR ORG** desenvolve soluções que conectam nostalgia e inovação.
+A **BRAAR ORG** é um ecossistema focado no desenvolvimento de soluções que convergem design nostálgico e engenharia de software eficiente.
 
 * 💻 **GitHub:** [@BRAAR-ORG](https://github.com/BRAAR-ORG)
-* 🛠️ **Missão:** Criar experiências digitais memoráveis.
+* 🛠️ **Diretriz:** Transformar conceitos clássicos em aplicações digitais de alto desempenho.
 
 ---
 
-## ⭐ Apoie a Estação
+## ⭐ Contribuição e Suporte
 
-Gostou do som? Ajude a manter a rádio viva:
-* 🌟 **Star:** Deixe uma estrela neste repositório.
-* 📢 **Share:** Compartilhe com quem aprecia música de qualidade.
-* ❤️ **Enjoy:** Sintonize e deixe a música fazer o resto.
+Você pode apoiar a evolução e a manutenção contínua desta estação através das seguintes ações:
+* 🌟 **Star:** Registre uma estrela neste repositório para aumentar o alcance do projeto.
+* 📢 **Share:** Compartilhe o link com entusiastas de música e tecnologia de áudio.
+* ❤️ **Feedback:** Contribua abrindo *Issues* ou sugerindo melhorias na curadoria.
 
 <div align="center">
   <br>
-  <img src="https://img.shields.io/badge/4MFM_RADIO-Qualidade_Inabalável-blueviolet?style=social&logo=reverbnation">
-  <br>
-  <sub>Copyright © 2026 BRAAR ORG - Música boa não tem data de validade.</sub>
+  <img src="https://img.shields.io/badge/4MFM_RADIO-Alta_Fidelidade-blueviolet?style=social&logo=reverbnation">
+  <br><br>
+  <td>A engenharia de áudio preservando o melhor do passado.</td><br>
+  <sub>Copyright © 2026 BRAAR ORG. Todos os direitos reservados.</sub>
 </div>
