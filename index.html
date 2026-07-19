@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sintonize na 4MFM RADIO - Transmissão ao vivo, interação e a melhor programação.">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>4MFM RADIO</title>
+    
+    <link rel="icon" type="image/png" href="icon/logo-4mfm.png">
+    <link class="apple-touch-icon" href="icon/logo-4mfm.png">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    </noscript>
+
+    <link rel="stylesheet" href="style.css?v=2.0">
+</head>
+<body>
+
+    <img id="bgImage" alt="Fundo da interface da rádio" aria-hidden="true">
+    <div class="overlay" aria-hidden="true"></div>
+
+    <div class="container">
+        <header class="main-header">
+            <div class="logo-area">
+                <h1 class="logo-text">4MFM</h1>
+                <span class="logo-sub">RADIO</span>
+            </div>
+        </header>
+
+        <main class="dashboard">
+            <div class="left-column">
+                <section class="video-box glass" aria-label="Vitrine do Estúdio">
+                    <div class="video-content">
+                        <img src="Img-banner/4mfmBanner001.png" id="studioImg" alt="Banner da vitrine 4MFM RADIO" loading="lazy">
+                        <div class="video-badge">4MFM RADIO</div>
+                    </div>
+                </section>
+
+                <section class="player-box glass" aria-label="Controles do Player">
+                    <div class="player-content">
+                        <div class="album-art">
+                            <img src="icon/logo-4mfm.png" id="albumArt" alt="Capa do Álbum ou Logo" loading="lazy">
+                        </div>
+                        <div class="track-info">
+                            <h2 id="track" aria-live="polite">Pronto para Sintonizar?</h2>
+                            <p id="artist" aria-live="polite">4MFM RADIO</p>
+                            <div class="clock" id="liveClock" aria-live="polite">00:00</div>
+                        </div>
+                    </div>
+
+                    <div class="controls-area">
+                        <button id="startBtn" class="main-btn" aria-label="Iniciar transmissão">
+                            <i class="fas fa-play" aria-hidden="true"></i> SINTONIZAR AGORA
+                        </button>
+                        
+                        <div id="interactionGroup" class="interaction-group hidden">
+                            <button id="shareBtn" class="action-btn share" aria-label="Compartilhar rádio">
+                                <i class="fas fa-share-alt" aria-hidden="true"></i> Compartilhar
+                            </button>
+                            <a href="https://forms.gle/1NrSipsVeHtBtKwy5" target="_blank" rel="noopener noreferrer" class="action-btn comment">
+                                <i class="fas fa-comment-dots" aria-hidden="true"></i> Pedir Música
+                            </a>
+                            <div class="live-tag">
+                                <span class="pulse" aria-hidden="true"></span> AO VIVO
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="right-column glass" aria-labelledby="notice">
+                <div class="visualizer-container">
+                    <canvas id="visualizer" class="visualizer hidden" aria-hidden="true"></canvas>
+                </div>
+
+                <div id="notice" class="notice-text" style="color: #fff; text-align: center; margin-bottom: 10px;">
+                    Clique no botão para iniciar a transmissão em tempo real.
+                </div>
+
+                <hr class="chat-divider">
+
+                <div id="loginScreen" class="chat-container">
+                    <p class="chat-label">Junte-se à sala de bate-papo:</p>
+                    <input type="text" id="usernameInput" class="chat-input" placeholder="Digite seu nome..." aria-label="Seu nome para o chat">
+                    <button id="enterChatBtn" class="chat-btn">Entrar no Chat</button>
+                </div>
+
+                <div id="chatScreen" class="chat-container">
+                    <div id="activeUsersCount" aria-live="polite">
+                        1 pessoa online na sala
+                    </div>
+                    
+                    <div id="chatMessages" aria-live="polite" aria-atomic="false"></div>
+                    
+                    <div class="chat-input-group">
+                        <input type="text" id="userInput" class="chat-input" placeholder="Participe da conversa..." aria-label="Digite sua mensagem">
+                        <button id="sendMsgBtn" class="chat-btn" aria-label="Enviar mensagem">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- REMOVIDO O CROSSORIGIN PARA ACEITAR LINKS DO GITHUB NATURAMENTE -->
+    <audio id="audio"></audio>
+
+    <script src="playlist.js" defer></script>
+    <script src="script.js" defer></script>
+    <script src="camilla.js" defer></script>
+    <script src="notification.js" defer></script>
+    <script src="toast.js" defer></script>
+    <script src="brain.js" defer></script>
+    <script src="db.js" defer></script>
+    <script src="chat.js" defer></script>
+    <script src="radio.js" defer></script>
+
+</body>
+</html>
