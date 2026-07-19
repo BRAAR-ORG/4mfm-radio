@@ -11,7 +11,9 @@ const CamillaSystem = (() => {
                 "Descontraida/Esquece_boletos.mp3", "Descontraida/Fita_cassete.mp3",
                 "Descontraida/vicio.mp3"
             ],
-            extra: ["Extra/dilema.mp3", "Extra/escritorio.mp3", "Extra/flashback.mp3"],
+            extra: ["Extra/dilema.mp3", "Extra/escritorio.mp3", "Extra/flashback.mp3", "Extra/boas_vindas.mp3", "Extra/comentario_musica.mp3", "Extra/correria.mp3", 
+                "Extra/observacao.mp3"
+            ],
             piadas: [],
             // 📅 NOVAS CATEGORIAS: Dias da Semana
             domingo: ["Dias/Domingo/domingo_manha.mp3", "Dias/Domingo/domingo_tarde.mp3"],
